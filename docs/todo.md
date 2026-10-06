@@ -44,7 +44,6 @@
 - [ ] 공휴일 등록 (특일정보 API)
 - [ ] 뉴스레터 직접 생성/발송 (임시 데이터)
 - [ ] 뉴스레터 자동 생성/발송 (스케줄러)
-- [ ] 보낸 메일 확인
 - [ ] 뉴스레터 히스토리
 - [ ] 석유 데이터 출처 결정 후 실제 API 연결 (출처 결정 필요, D-050)
 
@@ -60,30 +59,16 @@
 
 ## 세션 인계
 
-- **마지막 갱신**: 2026-10-03
-- **현재 상태**: 설계 단계. 요구사항을 decision.md(D-001~D-050)와 overview.md(전 항목)에 확정했다. spec.md는 스택 일부만 채웠다. 백로그는 overview.md 우선순위대로 만들었다. 코드는 아직 없다.
-  - 사용자가 나머지 설계 문서를 먼저 정리하기로 했다(백로그 작업 전).
-  - 그래서 아래 초안을 사용자에게 제시했고, 답변을 기다리는 중이다. 승인 전이므로 아직 어느 문서에도 반영하지 않았다.
-  - **A. spec.md 기술 선택 초안**
-    - 기술: EF Core 10, 쿠키 인증(Identity 전체 미사용), BCrypt.Net-Next, MailKit(Gmail SMTP), xUnit, .NET User Secrets
-    - 질문 1: SQL Server 설치 종류를 정한다. (가) Express, (나) Developer, (다) LocalDB 중 하나. 이 PC에는 SQL Server 서비스와 LocalDB가 없다.
-  - **B. database.md 테이블 초안**
-    - 테이블: users(login_id/email unique, role User/Admin), email_verifications(code char(6), expires_at, is_verified), recipients(user_id unique), newsletters(status Generated/GenerationFailed/Sent/SendFailed, 생성 실패도 행으로 남김), send_logs(수신자별 결과, email 함께 저장), newsletter_settings(1행, KST time, last_generate_date/last_send_date로 중복 실행 방지), holidays(holiday_date unique)
-    - 질문 2: 입력값 제한. 아이디는 영문 소문자+숫자 4~20자, 비밀번호는 8~64자에 영문·숫자 각 1자 이상, 이름은 1~50자, 이메일은 최대 254자.
-    - 질문 3: 뉴스레터 제목 형식을 "[석유 뉴스레터] YYYY-MM-DD"로 할지.
-    - 질문 4: send_logs가 users를 FK로 참조하면서 이메일도 저장하는 방식으로 할지.
-    - 질문 5: 수신자를 삭제해도 과거 발송 기록을 남길지(제안: 남긴다).
-  - **C. structure.md 초안**
-    - 구조: Newsletter.sln, src/Newsletter.Web(Controllers, Views, Models, Data, Services, BackgroundJobs, wwwroot), tests/Newsletter.Tests
-    - 질문 6: backend/frontend로 나누지 않고 한 MVC 프로젝트로 구성해도 되는지.
-  - **D. api.md 초안**
-    - 화면은 MVC 폼 전송으로 만든다. JSON API는 POST /api/email-verifications(코드 발송)와 POST /api/email-verifications/confirm(코드 확인) 두 개만 둔다.
-    - 질문 7: 나머지 기능을 폼 전송으로 할지, 모두 JSON API로 통일할지.
-- **다음에 할 일**: 사용자에게 질문 1~7의 답을 받는다. 답을 decision.md에 기록한 뒤 spec.md, database.md(실제 CREATE TABLE 코드 포함), structure.md, api.md를 작성한다. 그다음 백로그 맨 위(회원가입)로 loop.md 1번(계획)을 진행한다.
+- **마지막 갱신**: 2026-10-06
+- **현재 상태**: 설계 단계. 질문 1~7의 답을 decision.md D-051~D-058로 기록했다. 그 결과로 spec.md, database.md(CREATE TABLE 포함), structure.md(계획 구조, "(예정)" 표시), api.md(전체 API)를 작성했고, overview.md에 입력값 제한과 제목 형식을 반영했다. 코드는 아직 없다.
+  - 문서 검토 결과를 D-059~D-063으로 기록했다. D-063으로 별도 "보낸 메일 확인" 화면을 없앴다(히스토리가 보낸 메일 화면). overview.md, api.md, structure.md, 백로그에서 관련 항목을 지웠다.
+  - newsletters의 newsletter_date, sent_at 컬럼을 D-064로 확정했다. 설계 문서(spec, database, structure, api, overview)는 모두 사용자 확인을 마쳤다.
+  - 2026-10-06 세션은 사용자 요청으로 여기서 종료했다.
+- **다음에 할 일**: 백로그 맨 위(회원가입)로 loop.md 1번(계획)을 진행하고 2번(승인)에서 사용자 승인을 기다린다.
 - **주의 사항**:
   - 석유 데이터 출처가 미정이다(D-050). 정해질 때까지 임시 데이터로 개발한다.
-  - 사용자가 직접 준비할 것: Gmail 앱 비밀번호(2단계 인증 필요), 공공데이터포털 특일정보 API 키, SQL Server 설치.
-  - structure.md "변경 가능" 목록에는 아직 예시 항목만 있다.
+  - 사용자가 직접 준비할 것: Gmail 앱 비밀번호(2단계 인증 필요), 공공데이터포털 특일정보 API 키, SQL Server Developer 설치.
+  - spec.md 의존성 버전은 2026-10-06 NuGet 최신 안정 버전이다. 프로젝트를 만들 때 .NET 10 지원 여부와 취약점을 확인한다.
 
 ---
 

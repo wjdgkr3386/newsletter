@@ -22,9 +22,31 @@
 ### 변경 가능
 |폴더구조|설명|
 |---|---|
-|프로젝트/backend/|백엔드 폴더 (예시)|
-|프로젝트/frontend/|프론트엔드 폴더 (예시)|
-|프로젝트/backend/Controllers/HomeController.cs|기본 홈컨트롤러 (예시)|
+|프로젝트/docs/|설계·진행 문서 폴더|
+|프로젝트/README.md|저장소 소개|
+
+<!-- 아래는 아직 만들지 않은 계획 구조다(D-056, D-057). 실제로 만들 때 "(예정)"을 지우고, 파일 단위 항목을 추가한다 -->
+|폴더구조|설명|
+|---|---|
+|프로젝트/Newsletter.sln|솔루션 파일 (예정)|
+|프로젝트/src/Newsletter/|ASP.NET Core MVC 웹 프로젝트 (예정)|
+|프로젝트/src/Newsletter/Program.cs|앱 시작, 서비스 등록, 쿠키 인증·스케줄러 설정 (예정)|
+|프로젝트/src/Newsletter/appsettings.json|비밀 정보를 뺀 설정. 비밀 정보는 User Secrets에 둔다 (예정)|
+|프로젝트/src/Newsletter/Controllers/|화면 틀(Razor 뷰)을 반환하는 화면 컨트롤러 (예정)|
+|프로젝트/src/Newsletter/Controllers/Api/|JSON API 컨트롤러 (/api/...) (예정)|
+|프로젝트/src/Newsletter/Views/Account/|로그인, 회원가입 화면 (예정)|
+|프로젝트/src/Newsletter/Views/History/|히스토리 목록, 본문 화면 (예정)|
+|프로젝트/src/Newsletter/Views/Admin/|관리자 화면 (발송, 수신자, 설정) (예정)|
+|프로젝트/src/Newsletter/Views/Shared/|공통 레이아웃, 좌측 네비게이션 (예정)|
+|프로젝트/src/Newsletter/Models/Entities/|DB 테이블과 매핑되는 엔티티 클래스 (예정)|
+|프로젝트/src/Newsletter/Models/Dtos/|API 요청·응답 클래스 (예정)|
+|프로젝트/src/Newsletter/Data/|EF Core DbContext (예정)|
+|프로젝트/src/Newsletter/Services/|비즈니스 로직 (회원, 메일, 뉴스레터, 공휴일 등) (예정)|
+|프로젝트/src/Newsletter/BackgroundJobs/|BackgroundService 스케줄러 (자동 생성/발송, 공휴일 등록) (예정)|
+|프로젝트/src/Newsletter/wwwroot/css/|화면별 CSS. 파일명은 연결된 화면 파일명과 같게 한다 (예정)|
+|프로젝트/src/Newsletter/wwwroot/js/|화면별 JS (API 호출). 파일명은 연결된 화면 파일명과 같게 한다 (예정)|
+|프로젝트/src/Newsletter/wwwroot/lib/|부트스트랩 등 MVC 템플릿 기본 라이브러리 (예정)|
+|프로젝트/tests/Newsletter.Tests/|xUnit v3 테스트 프로젝트 (예정)|
 
 ### 변경 불가능
 - 프로젝트/docs/coding_rule.md
