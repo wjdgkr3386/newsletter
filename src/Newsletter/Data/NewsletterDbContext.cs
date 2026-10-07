@@ -22,6 +22,8 @@ public class NewsletterDbContext : DbContext
 
     public DbSet<EmailVerification> EmailVerifications => Set<EmailVerification>();
 
+    public DbSet<Recipient> Recipients => Set<Recipient>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -53,6 +55,21 @@ public class NewsletterDbContext : DbContext
             entity.Property(verification => verification.UpdatedAt).HasColumnName("updated_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
             entity.Property(verification => verification.FailCount).HasColumnName("fail_count");
             entity.HasIndex(verification => verification.Email).HasDatabaseName("idx_email_verifications_email");
+        });
+
+        modelBuilder.Entity<Recipient>(entity =>
+        {
+            entity.ToTable("recipients");
+            entity.HasKey(recipient => recipient.Id);
+            entity.Property(recipient => recipient.Id).HasColumnName("id");
+            entity.Property(recipient => recipient.UserId).HasColumnName("user_id");
+            entity.Property(recipient => recipient.CreatedAt).HasColumnName("created_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
+            entity.Property(recipient => recipient.UpdatedAt).HasColumnName("updated_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
+            entity.HasIndex(recipient => recipient.UserId).IsUnique().HasDatabaseName("idx_recipients_user_id");
+            entity.HasOne(recipient => recipient.User)
+                .WithMany()
+                .HasForeignKey(recipient => recipient.UserId)
+                .HasConstraintName("fk_recipients_user_id");
         });
     }
 }

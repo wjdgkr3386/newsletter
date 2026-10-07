@@ -18,4 +18,5 @@ public static class ErrorCodes
     public const string EmailDuplicated = "EMAIL_DUPLICATED";
     public const string MailSendFailed = "MAIL_SEND_FAILED";
     public const string LoginFailed = "LOGIN_FAILED";
+    public const string AlreadyRecipient = "ALREADY_RECIPIENT";
 }

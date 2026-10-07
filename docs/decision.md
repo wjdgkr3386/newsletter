@@ -646,3 +646,19 @@
 - 이유: 사용자 정의 (선택 방식, 표시 항목, 검색은 사용자 선택)
 - 관련 문서/파일: api.md, overview.md, todo.md
 - 상태: 유효
+
+### D-077 수신자 관리 페이징
+- 날짜: 2026-10-07
+- 질문/상황: 수신자 관리 화면에 페이징을 넣을지
+- 결정: 본문 수신자 목록, 추가 팝업, 삭제 팝업 모두 한 페이지에 10명씩 페이징한다. 목록은 한 번에 받아 화면에서 나눈다(검색하면 1페이지로 돌아감). 팝업에서 고른 사람은 페이지를 넘기거나 검색해도 선택이 유지된다. 전체 선택은 지금 페이지에 보이는 행에만 적용한다.
+- 이유: 사용자 요구 (적용 위치와 페이지 크기는 사용자 선택. 화면에서 나누는 방식과 선택 유지는 AI 제안)
+- 관련 문서/파일: src/Newsletter/Views/Admin/Recipients_screen.md, docs/mockups/recipients.html
+- 상태: 유효
+
+### D-078 로그인 후 화면 본문 가운데 배치
+- 날짜: 2026-10-07
+- 질문/상황: 본문이 왼쪽 위에 몰려 보임
+- 결정: 로그인 후 모든 화면의 본문을 공통 레이아웃(_AppLayout)에서 최대 너비 960px로 네비게이션 오른쪽 영역의 가운데에 둔다.
+- 이유: 사용자 요구 (모든 화면 적용은 사용자 선택, 최대 너비 960px는 AI 제안)
+- 관련 문서/파일: src/Newsletter/Views/Shared/_AppLayout_screen.md, src/Newsletter/wwwroot/css/app_layout.css, docs/mockups/app_layout.html, docs/mockups/recipients.html
+- 상태: 유효

@@ -15,4 +15,10 @@ public class AdminController : Controller
     {
         return View();
     }
+
+    [HttpGet]
+    public IActionResult Recipients()
+    {
+        return View();
+    }
 }

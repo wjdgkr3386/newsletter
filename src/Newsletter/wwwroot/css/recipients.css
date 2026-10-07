@@ -1,0 +1,13 @@
+.recipients-title,
+.recipients-table td,
+.picker-table td {
+    white-space: nowrap;
+}
+
+.picker-table tbody tr {
+    cursor: pointer;
+}
+
+.picker-dialog {
+    max-width: 500px;
+}

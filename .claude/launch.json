@@ -10,7 +10,7 @@
     {
       "name": "newsletter",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "src/Newsletter", "--launch-profile", "http"],
+      "runtimeArgs": ["run", "--project", "src/Newsletter", "--launch-profile", "http", "-p:UseAppHost=false"],
       "port": 5044
     }
   ]

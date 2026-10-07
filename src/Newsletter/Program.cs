@@ -61,6 +61,7 @@ builder.Services.AddScoped<IMailSender, GmailMailSender>();
 builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRecipientService, RecipientService>();
 
 var app = builder.Build();
 
