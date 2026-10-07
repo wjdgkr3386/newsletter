@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "로그인";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+}
+
+<div class="card login-card">
+    <div class="card-body p-4">
+        @Html.AntiForgeryToken()
+        <p class="text-secondary text-center small mb-1">뉴스레터</p>
+        <h1 class="h4 text-center mb-4">로그인</h1>
+
+        <div id="global-error" class="alert alert-danger d-none" role="alert"></div>
+
+        <div class="mb-3">
+            <label for="login-id" class="form-label">아이디</label>
+            <input type="text" id="login-id" class="form-control" maxlength="20" autocomplete="username" autofocus />
+            <div id="login-id-error" class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-4">
+            <label for="password" class="form-label">비밀번호</label>
+            <input type="password" id="password" class="form-control" maxlength="20" autocomplete="current-password" />
+            <div id="password-error" class="invalid-feedback"></div>
+        </div>
+
+        <button type="button" id="btn-login" class="btn btn-primary w-100">로그인</button>
+
+        <p class="text-center small text-secondary mt-3 mb-0">계정이 없나요? <a href="/Account/Register">회원가입</a></p>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/login.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,27 @@
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.app-nav {
+    width: 220px;
+    flex-shrink: 0;
+    background-color: #212529;
+    color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+}
+
+.app-nav .nav-link {
+    color: #FFFFFF;
+}
+
+.app-nav .nav-link.active {
+    background-color: #0D6EFD;
+}
+
+.app-content {
+    flex-grow: 1;
+    padding: 32px;
+}

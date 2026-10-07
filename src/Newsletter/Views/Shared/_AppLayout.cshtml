@@ -1,0 +1,50 @@
+@using Newsletter.Models.Entities
+@{
+    // 로그인한 사용자 화면의 공통 레이아웃 (_AppLayout_screen.md, D-049, D-074)
+    bool isAdmin = User.IsInRole(UserRole.Admin);
+    string currentPath = Context.Request.Path.Value ?? string.Empty;
+
+    string GetMenuClass(string menuPath) =>
+        currentPath.StartsWith(menuPath, StringComparison.OrdinalIgnoreCase) ? "nav-link active" : "nav-link";
+}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - 뉴스레터</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app_layout.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    @Html.AntiForgeryToken()
+    <div class="app-wrapper">
+        <nav class="app-nav">
+            <div class="fs-5 mb-4">뉴스레터</div>
+
+            <ul class="nav nav-pills flex-column mb-auto">
+                @if (isAdmin)
+                {
+                    <li class="nav-item"><a href="/Admin/Send" class="@GetMenuClass("/Admin/Send")">뉴스레터 발송</a></li>
+                    <li class="nav-item"><a href="/Admin/Recipients" class="@GetMenuClass("/Admin/Recipients")">수신자 관리</a></li>
+                    <li class="nav-item"><a href="/Admin/Settings" class="@GetMenuClass("/Admin/Settings")">뉴스레터 설정 관리</a></li>
+                }
+                <li class="nav-item"><a href="/History" class="@GetMenuClass("/History")">히스토리</a></li>
+            </ul>
+
+            <button type="button" id="btn-logout" class="btn btn-outline-light btn-sm w-100">로그아웃</button>
+        </nav>
+
+        <main role="main" class="app-content">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/app_layout.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

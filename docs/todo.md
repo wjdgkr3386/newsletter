@@ -27,7 +27,25 @@
 - 메모: 
 -->
 
-(없음)
+### 수신자 관리
+- 목표: 관리자가 가입한 회원을 수신자로 추가하거나 수신자에서 삭제할 수 있다 (D-007, D-016, D-026, D-076). 수신자에서 삭제해도 발송 기록은 남는다 (D-055).
+- 완료 조건:
+  - 관리자가 수신자 관리 화면(/Admin/Recipients)에서 수신자 목록(이름, 이메일)을 본다 (D-076)
+  - "수신자 추가" 팝업에는 수신자가 아닌 회원만 나오고, 여러 명을 골라 추가하면 recipients에 행이 생기고 화면 목록이 바뀐다
+  - "수신자 삭제" 팝업에는 수신자만 나오고, 여러 명을 골라 삭제하면 recipients 행이 지워지고 화면 목록이 바뀐다. 팝업 검색칸으로 이름·이메일을 걸러 볼 수 있다
+  - 빈 목록·중복 id(INVALID_INPUT), 이미 수신자인 회원 추가(ALREADY_RECIPIENT), 없는 회원(NOT_FOUND), 수신자가 아닌 회원 삭제(NOT_FOUND)는 api.md 오류 코드로 응답하고, 하나라도 오류면 아무도 추가/삭제하지 않는다
+  - 일반 사용자와 비로그인 사용자는 화면에 들어갈 수 없고, API는 403 FORBIDDEN / 401 UNAUTHORIZED로 응답한다
+  - test.md 완료 체크리스트(1~15)를 통과한다
+- 계획:
+  1. DB: recipients 엔티티 매핑 (테이블은 이미 있음)
+  2. 화면: Recipients_screen.md와 시안 docs/mockups/recipients.html 작성 → 사용자 승인 → 화면만 구현 → 화면 확인 → 사용자 확인. 화면 구성은 D-076을 따른다
+  3. 기능: GET /api/users?isRecipient=false, GET /api/recipients, POST /api/recipients, POST /api/recipients/delete (관리자만, 여러 명 한 번에), recipients.js(fetch, 팝업 검색)
+  4. 테스트: 수신자 서비스(추가·삭제 1명과 여러 명, 빈 목록, 중복 id, 이미 수신자, 없는 회원, 수신자 아닌 회원 삭제, 일부 오류 시 전체 취소, 목록 필터)의 동등 분할·경계값 테스트
+- 계획 승인: 승인 전
+- 현재 단계: 2. 승인
+- 관련 파일: src/Newsletter/(Controllers/AdminController.cs, Controllers/Api/UsersController.cs, Controllers/Api/RecipientsController.cs, Models/Entities/Recipient.cs, Data/NewsletterDbContext.cs, Services/, Views/Admin/Recipients.cshtml, Recipients_screen.md, wwwroot/js/recipients.js, wwwroot/css/recipients.css), docs/mockups/recipients.html, tests/Newsletter.Tests/, docs/structure.md
+- 재시도 기록: 없음
+- 메모: 
 
 ---
 
@@ -37,9 +55,6 @@
 
 "진행 중"에서 옮긴 작업은 "진행 중" 형식의 내용을 그대로 유지한 채 옮긴다.
 
-- [ ] 회원가입 (이메일 인증 코드 포함)
-- [ ] 로그인 (일반 사용자/관리자 구분, 좌측 네비게이션)
-- [ ] 수신자 관리
 - [ ] 뉴스레터 설정 관리
 - [ ] 공휴일 등록 (특일정보 API)
 - [ ] 뉴스레터 직접 생성/발송 (임시 데이터)
@@ -59,19 +74,22 @@
 
 ## 세션 인계
 
-- **마지막 갱신**: 2026-10-06
-- **현재 상태**: 설계 단계. 질문 1~7의 답을 decision.md D-051~D-058로 기록했다. 그 결과로 spec.md, database.md(CREATE TABLE 포함), structure.md(계획 구조, "(예정)" 표시), api.md(전체 API)를 작성했고, overview.md에 입력값 제한과 제목 형식을 반영했다. 코드는 아직 없다.
-  - 문서 검토 결과를 D-059~D-063으로 기록했다. D-063으로 별도 "보낸 메일 확인" 화면을 없앴다(히스토리가 보낸 메일 화면). overview.md, api.md, structure.md, 백로그에서 관련 항목을 지웠다.
-  - newsletters의 newsletter_date, sent_at 컬럼을 D-064로 확정했다. 설계 문서(spec, database, structure, api, overview)는 모두 사용자 확인을 마쳤다.
-  - 2026-10-06 세션은 사용자 요청으로 여기서 종료했다.
-- **다음에 할 일**: 백로그 맨 위(회원가입)로 loop.md 1번(계획)을 진행하고 2번(승인)에서 사용자 승인을 기다린다.
+- **마지막 갱신**: 2026-10-07
+- **현재 상태**: 회원가입, 로그인 작업을 완료했다(아래 "완료"). 다음 작업인 수신자 관리의 계획을 "진행 중"에 적고 사용자 승인을 기다리는 중이다.
+  - 코드: src/Newsletter(MVC, .NET 10), tests/Newsletter.Tests(xUnit v3, 103개 통과). DB는 로컬 SQL Server 2025 Developer의 newsletter.
+  - 계정: wjdgkr3386(Admin, D-073)만 있다. 일반 사용자 확인이 필요하면 회원가입으로 만들거나, 무작위 비밀번호로 임시 계정을 만들어 확인 후 지운다.
+  - 실행: 앱 내 브라우저는 .claude/launch.json의 "newsletter"(http://localhost:5044), 시안은 "mockups"(포트 5500).
+  - 2026-10-07 작업분(프로젝트 전체, 문서 수정)은 아직 커밋하지 않았다.
+- **다음에 할 일**: 수신자 관리 계획 승인을 받고 loop.md 3번(구현)을 진행한다.
 - **주의 사항**:
   - 석유 데이터 출처가 미정이다(D-050). 정해질 때까지 임시 데이터로 개발한다.
-  - 사용자가 직접 준비할 것: Gmail 앱 비밀번호(2단계 인증 필요), 공공데이터포털 특일정보 API 키, SQL Server Developer 설치.
-  - spec.md 의존성 버전은 2026-10-06 NuGet 최신 안정 버전이다. 프로젝트를 만들 때 .NET 10 지원 여부와 취약점을 확인한다.
+  - User Secrets 등 AppData 아래 설정은 사용자가 cmd에서 직접 넣는다(security.md). Claude 데스크톱 앱(MSIX)에서는 AI가 쓴 AppData 파일이 앱 전용 가상 폴더(AppData\Local\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming)에 저장되어 서로 다른 파일을 보게 된다. 키 3개(ConnectionStrings:Newsletter, Mail:SenderAddress, Mail:AppPassword)는 사용자가 넣었다.
+  - 사용자가 직접 준비할 것: 공공데이터포털 특일정보 API 키(공휴일 등록 작업 전).
+  - .NET 10 SDK에서 dotnet test는 루트 global.json(Microsoft.Testing.Platform)이 있어야 동작한다. 앱 실행 중에는 빌드가 파일 잠금으로 실패하므로 미리보기 서버를 멈추고 빌드한다.
 
 ---
 
 ## 완료
 
-- {{YYYY-MM-DD}} {{작업명}}
+- 2026-10-07 로그인 (일반 사용자/관리자 구분, 좌측 네비게이션): 쿠키 인증(60분, 요청 시 연장, HttpOnly, SameSite=Strict), 관리자 전용 권한, 로그인·로그아웃 API, 로그인 화면, 좌측 네비게이션 레이아웃(사용자 정보 표시 안 함 D-074), 빈 화면 2개(D-070), 루트 주소·로그인 사용자 이동(D-071, D-072), 관리자 계정 지정(D-073). 빌드 경고·오류 0, 테스트 103개 통과, 사용자 화면 확인 완료
+- 2026-10-07 회원가입 (이메일 인증 코드 포함): 프로젝트 생성, DB 생성, API 3개(인증 코드 발송·확인, 회원가입), Gmail 발송, 화면(실시간 검사 D-067, 5번 틀리면 무효 D-068, 발송 즉시 화면 전환 D-069). 빌드 경고·오류 0, 테스트 88개 통과, 사용자가 실제 메일 수신과 가입 확인

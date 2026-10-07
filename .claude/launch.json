@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mockups",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/mockup_server.js"],
+      "port": 5500
+    },
+    {
+      "name": "newsletter",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/Newsletter", "--launch-profile", "http"],
+      "port": 5044
+    }
+  ]
+}

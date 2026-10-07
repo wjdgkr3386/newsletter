@@ -21,7 +21,7 @@
 |비밀 정보 관리|.NET User Secrets (Gmail 앱 비밀번호, 특일정보 API 키, DB 접속 정보)|.NET 10 기본 포함|
 |화면|Razor 뷰(화면 틀) + JS fetch로 JSON API 호출| |
 |개발 도구|Visual Studio| |
-|테스트 도구|xUnit v3| |
+|테스트 도구|xUnit v3 (Microsoft.Testing.Platform 실행기, 루트 global.json에서 지정)| |
 
 
 ---
@@ -37,6 +37,7 @@
 |xunit.v3|4.0.1|테스트 프레임워크 (tests/Newsletter.Tests)|
 |xunit.runner.visualstudio|4.0.0|테스트 실행기 (tests/Newsletter.Tests)|
 |Microsoft.NET.Test.Sdk|18.10.1|테스트 실행 SDK (tests/Newsletter.Tests)|
-|Bootstrap|5.x (MVC 템플릿 기본 포함 버전)|화면 스타일|
+|Microsoft.EntityFrameworkCore.InMemory|10.0.12|테스트용 메모리 DB (tests/Newsletter.Tests). 서비스 테스트에서 실제 SQL Server 대신 사용|
+|Bootstrap|5.3.3 (MVC 템플릿 기본 포함)|화면 스타일|
 
 ---
