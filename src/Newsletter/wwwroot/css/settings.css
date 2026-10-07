@@ -1,0 +1,9 @@
+.settings-area {
+    width: 480px;
+    margin: 0 auto;
+}
+
+/* 오류 아이콘이 숫자를 가리지 않는 너비 (Settings_screen.md) */
+.time-select {
+    width: 110px;
+}

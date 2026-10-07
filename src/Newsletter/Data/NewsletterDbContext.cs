@@ -24,6 +24,8 @@ public class NewsletterDbContext : DbContext
 
     public DbSet<Recipient> Recipients => Set<Recipient>();
 
+    public DbSet<NewsletterSetting> NewsletterSettings => Set<NewsletterSetting>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -70,6 +72,19 @@ public class NewsletterDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(recipient => recipient.UserId)
                 .HasConstraintName("fk_recipients_user_id");
+        });
+
+        modelBuilder.Entity<NewsletterSetting>(entity =>
+        {
+            entity.ToTable("newsletter_settings");
+            entity.HasKey(setting => setting.Id);
+            entity.Property(setting => setting.Id).HasColumnName("id");
+            entity.Property(setting => setting.GenerateTime).HasColumnName("generate_time").HasColumnType("time(0)");
+            entity.Property(setting => setting.SendTime).HasColumnName("send_time").HasColumnType("time(0)");
+            entity.Property(setting => setting.LastGenerateDate).HasColumnName("last_generate_date").HasColumnType("date");
+            entity.Property(setting => setting.LastSendDate).HasColumnName("last_send_date").HasColumnType("date");
+            entity.Property(setting => setting.CreatedAt).HasColumnName("created_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
+            entity.Property(setting => setting.UpdatedAt).HasColumnName("updated_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
         });
     }
 }

@@ -662,3 +662,11 @@
 - 이유: 사용자 요구 (모든 화면 적용은 사용자 선택, 최대 너비 960px는 AI 제안)
 - 관련 문서/파일: src/Newsletter/Views/Shared/_AppLayout_screen.md, src/Newsletter/wwwroot/css/app_layout.css, docs/mockups/app_layout.html, docs/mockups/recipients.html
 - 상태: 유효
+
+### D-079 뉴스레터 설정 화면 입력 방식
+- 날짜: 2026-10-07
+- 질문/상황: 생성·발송 시간 입력 방식과 마지막 자동 실행 날짜 표시 여부
+- 결정: 생성 시간과 발송 시간은 각각 시(00~23)·분(00~59) 선택 상자로 고른다. 마지막 자동 생성일·발송일은 화면에 보여주지 않는다.
+- 이유: 사용자 선택
+- 관련 문서/파일: src/Newsletter/Views/Admin/Settings_screen.md
+- 상태: 유효

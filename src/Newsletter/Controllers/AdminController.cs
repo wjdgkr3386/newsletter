@@ -21,4 +21,10 @@ public class AdminController : Controller
     {
         return View();
     }
+
+    [HttpGet]
+    public IActionResult Settings()
+    {
+        return View();
+    }
 }

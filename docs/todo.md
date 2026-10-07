@@ -38,11 +38,11 @@
   - test.md 완료 체크리스트(1~15)를 통과한다
 - 계획:
   1. DB: newsletter_settings 엔티티 매핑 (테이블과 기본 1행은 이미 있음)
-  2. 화면: Settings_screen.md와 시안 docs/mockups/settings.html 작성 → 사용자 승인 → 화면만 구현 → 화면 확인 → 사용자 확인. 시간 입력 방식 등은 설계 단계에서 질문한다
+  2. 화면: Settings_screen.md와 시안 docs/mockups/settings.html 작성 → 사용자 승인 → 화면만 구현 → 화면 확인 → 사용자 확인. 시간은 시·분 선택 상자로 입력한다 (D-079)
   3. 기능: GET /api/newsletter-settings, POST /api/newsletter-settings (관리자만), settings.js(fetch)
   4. 테스트: 설정 서비스(조회, 저장, 생성=발송, 생성>발송, 1분 차이, 00:00·23:59 경계, 형식 오류)의 동등 분할·경계값 테스트
-- 계획 승인: 승인 전
-- 현재 단계: 2. 승인
+- 계획 승인: 승인 완료, 2026-10-07
+- 현재 단계: 3. 구현 (화면 3-3: Settings.cshtml·settings.css·AdminController.Settings 작성, 빌드 성공. 화면 확인 4번은 막힘 → "막힌 일")
 - 관련 파일: src/Newsletter/(Controllers/AdminController.cs, Controllers/Api/NewsletterSettingsController.cs, Models/Entities/NewsletterSetting.cs, Models/Dtos/, Data/NewsletterDbContext.cs, Services/, Views/Admin/Settings.cshtml, Settings_screen.md, wwwroot/js/settings.js, wwwroot/css/settings.css), docs/mockups/settings.html, tests/Newsletter.Tests/, docs/structure.md, docs/api.md
 - 재시도 기록: 없음
 - 메모: 
@@ -67,19 +67,19 @@
 
 사용자의 결정, 외부 조건, 또는 반복 실패(loop.md "종료 조건") 때문에 진행할 수 없는 항목이다.
 
-- (없음)
+- 2026-10-07 22시: Windows 애플리케이션 제어 정책(스마트 앱 컨트롤로 보임)이 새로 빌드한 Newsletter.dll까지 차단해 앱을 실행할 수 없다(0x800711C7). 앞서 exe 차단은 UseAppHost=false로 피했지만 dll은 피할 방법이 없다. 보안 설정 변경은 사용자 판단 사항이라 AI는 바꾸지 않는다. 사용자 결정 대기: 스마트 앱 컨트롤 끄기, 또는 Visual Studio에서 직접 실행해 확인 등
 
 ---
 
 ## 세션 인계
 
 - **마지막 갱신**: 2026-10-07
-- **현재 상태**: 회원가입, 로그인, 수신자 관리 작업을 완료했다(아래 "완료"). 다음 작업인 뉴스레터 설정 관리의 계획을 "진행 중"에 적고 사용자 승인을 기다리는 중이다.
+- **현재 상태**: 회원가입, 로그인, 수신자 관리 작업을 완료했다(아래 "완료"). 뉴스레터 설정 관리를 진행 중이다: 계획 승인, D-079, 설계·시안 승인, 화면 코드(Settings.cshtml, settings.css, AdminController.Settings) 작성·빌드 성공. 화면 확인은 애플리케이션 제어 정책의 dll 차단으로 막혔다("막힌 일"). 2026-10-07 세션은 사용자 요청으로 여기서 종료했다.
   - 코드: src/Newsletter(MVC, .NET 10), tests/Newsletter.Tests(xUnit v3, 118개 통과). DB는 로컬 SQL Server 2025 Developer의 newsletter.
   - 계정: wjdgkr3386(Admin, D-073)만 있다. 확인용 계정이 필요하면 무작위 비밀번호로 임시 계정을 만들어 확인 후 지운다(비밀번호는 scratchpad에만 두고 채팅에 쓰지 않는다).
   - 실행: 앱 내 브라우저는 .claude/launch.json의 "newsletter"(http://localhost:5044), 시안은 "mockups"(포트 5500).
-  - 회원가입·로그인까지 feature/signup-login 브랜치에 커밋(d44b984). 수신자 관리는 아직 커밋하지 않았다. main 병합·푸시는 하지 않았다.
-- **다음에 할 일**: 뉴스레터 설정 관리 계획 승인을 받고 loop.md 3번(구현)을 진행한다.
+  - feature/signup-login 브랜치에 커밋: 회원가입·로그인(d44b984), 수신자 관리(db6a72d). main 병합·푸시는 하지 않았다.
+- **다음에 할 일**: "막힌 일"의 dll 차단을 사용자와 해결한다(스마트 앱 컨트롤 끄기, Visual Studio 실행 확인, 다시 시도 중 선택). 해결되면 설정 화면 확인(loop.md 3-4, 3-5) → 기능(GET/POST /api/newsletter-settings, settings.js) → 테스트를 진행한다. 설정 화면 작업분은 아직 커밋하지 않았다.
 - **주의 사항**:
   - 석유 데이터 출처가 미정이다(D-050). 정해질 때까지 임시 데이터로 개발한다.
   - User Secrets 등 AppData 아래 설정은 사용자가 cmd에서 직접 넣는다(security.md). Claude 데스크톱 앱(MSIX)에서는 AI가 쓴 AppData 파일이 앱 전용 가상 폴더(AppData\Local\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming)에 저장되어 서로 다른 파일을 보게 된다. 키 3개(ConnectionStrings:Newsletter, Mail:SenderAddress, Mail:AppPassword)는 사용자가 넣었다.

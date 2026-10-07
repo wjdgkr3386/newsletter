@@ -28,6 +28,7 @@
 |프로젝트/docs/mockups/login.html|로그인 화면 시안|
 |프로젝트/docs/mockups/app_layout.html|로그인 후 공통 레이아웃(좌측 네비게이션) 시안. 빈 화면(히스토리 목록, 뉴스레터 발송) 시안을 겸함|
 |프로젝트/docs/mockups/recipients.html|수신자 관리 화면 시안 (추가·삭제 팝업 포함)|
+|프로젝트/docs/mockups/settings.html|뉴스레터 설정 관리 화면 시안|
 |프로젝트/.claude/launch.json|앱 내 브라우저 미리보기 서버 설정 (mockups: 시안 보기 포트 5500, newsletter: 웹 앱 실행 포트 5044. 애플리케이션 제어 정책이 exe를 막아 UseAppHost=false로 dll 실행)|
 |프로젝트/.claude/mockup_server.js|시안 미리보기용 정적 파일 서버 (Node 기본 모듈만 사용, 127.0.0.1 전용)|
 |프로젝트/README.md|저장소 소개|
@@ -69,13 +70,14 @@
 |프로젝트/src/Newsletter/Views/Admin/Send.cshtml|뉴스레터 발송 화면 (지금은 빈 화면)|
 |프로젝트/src/Newsletter/Views/Admin/Recipients_screen.md|수신자 관리 화면 설계 문서|
 |프로젝트/src/Newsletter/Views/Admin/Recipients.cshtml|수신자 관리 화면 (Razor 뷰, 추가·삭제 팝업 포함)|
+|프로젝트/src/Newsletter/Views/Admin/Settings_screen.md|뉴스레터 설정 관리 화면 설계 문서|
 |프로젝트/src/Newsletter/Views/Shared/|공통 레이아웃(_Layout: 비회원 화면용, _AppLayout: 로그인 후 화면용), 오류 화면(Error), 검증 스크립트 부분 뷰|
 |프로젝트/src/Newsletter/Views/Shared/_AppLayout_screen.md|로그인 후 공통 레이아웃(좌측 네비게이션) 설계 문서|
 |프로젝트/src/Newsletter/Views/Shared/_AppLayout.cshtml|로그인 후 공통 레이아웃 (좌측 네비게이션, 권한별 메뉴, 로그아웃)|
 |프로젝트/src/Newsletter/Models/ErrorViewModel.cs|MVC 템플릿 기본 오류 화면 모델|
-|프로젝트/src/Newsletter/Models/Entities/|DB 테이블과 매핑되는 엔티티 클래스 (User, UserRole, EmailVerification, Recipient)|
+|프로젝트/src/Newsletter/Models/Entities/|DB 테이블과 매핑되는 엔티티 클래스 (User, UserRole, EmailVerification, Recipient, NewsletterSetting)|
 |프로젝트/src/Newsletter/Models/Dtos/|API 요청·응답 클래스 (공통 응답 ApiSuccessResponse, ApiErrorResponse, ApiErrorBody, EmptyData와 회원가입·로그인·수신자 API 요청·응답)|
-|프로젝트/src/Newsletter/Data/NewsletterDbContext.cs|EF Core DbContext (users, email_verifications, recipients 매핑. 마이그레이션 없음)|
+|프로젝트/src/Newsletter/Data/NewsletterDbContext.cs|EF Core DbContext (users, email_verifications, recipients, newsletter_settings 매핑. 마이그레이션 없음)|
 |프로젝트/src/Newsletter/Services/|비즈니스 로직. ErrorCodes, ServiceError, ServiceResult, InputValidator(입력값 검증), VerificationRules(인증 코드 만료), MailOptions, IMailSender, GmailMailSender, IEmailVerificationService, EmailVerificationService, IUserService, UserService, HomePathResolver(권한별 첫 화면), AuthPolicies(권한 정책 이름), IAuthService, AuthService(로그인 확인), IRecipientService, RecipientService(수신자 관리)|
 |프로젝트/src/Newsletter/BackgroundJobs/|BackgroundService 스케줄러 (자동 생성/발송, 공휴일 등록) (예정)|
 |프로젝트/src/Newsletter/wwwroot/css/site.css|공통 CSS (배경색)|
