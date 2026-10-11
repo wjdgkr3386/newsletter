@@ -79,9 +79,9 @@
 |프로젝트/src/Newsletter/Models/Entities/|DB 테이블과 매핑되는 엔티티 클래스 (User, UserRole, EmailVerification, Recipient, NewsletterSetting, Holiday)|
 |프로젝트/src/Newsletter/Models/Dtos/|API 요청·응답 클래스 (공통 응답 ApiSuccessResponse, ApiErrorResponse, ApiErrorBody, EmptyData와 회원가입·로그인·수신자·뉴스레터 설정 API 요청·응답)|
 |프로젝트/src/Newsletter/Data/NewsletterDbContext.cs|EF Core DbContext (users, email_verifications, recipients, newsletter_settings, holidays 매핑. 마이그레이션 없음)|
-|프로젝트/src/Newsletter/Services/|비즈니스 로직. ErrorCodes, ServiceError, ServiceResult, InputValidator(입력값 검증), VerificationRules(인증 코드 만료), MailOptions, IMailSender, GmailMailSender, IEmailVerificationService, EmailVerificationService, IUserService, UserService, HomePathResolver(권한별 첫 화면), AuthPolicies(권한 정책 이름), IAuthService, AuthService(로그인 확인), IRecipientService, RecipientService(수신자 관리), INewsletterSettingService, NewsletterSettingService(생성·발송 시간 설정), KoreanTime(KST 날짜), HolidayOptions, HolidayInfo, IHolidayApiClient, SpecialDayApiClient(특일정보 API), IHolidayService, HolidayService(공휴일 등록·발송 제외일 판단), HolidayRegistrationResult|
+|프로젝트/src/Newsletter/Services/|비즈니스 로직. ErrorCodes, ServiceError, ServiceResult, InputValidator(입력값 검증), VerificationRules(인증 코드 만료), MailOptions, IMailSender, GmailMailSender, IEmailVerificationService, EmailVerificationService, IUserService, UserService, HomePathResolver(권한별 첫 화면), AuthPolicies(권한 정책 이름), IAuthService, AuthService(로그인 확인), IRecipientService, RecipientService(수신자 관리), INewsletterSettingService, NewsletterSettingService(생성·발송 시간 설정), KoreanTime(KST 날짜), HolidayOptions, HolidayInfo, IHolidayApiClient, SpecialDayApiClient(특일정보 API), IHolidayService, HolidayService(공휴일 동기화·발송 제외일 판단), HolidaySyncResult|
 |프로젝트/src/Newsletter/BackgroundJobs/|BackgroundService 스케줄러|
-|프로젝트/src/Newsletter/BackgroundJobs/HolidayRegistrationJob.cs|앱 시작 직후와 1시간마다 올해(KST) 공휴일을 확인하고 없으면 등록 (D-080)|
+|프로젝트/src/Newsletter/BackgroundJobs/HolidayRegistrationJob.cs|1시간마다 확인해 오늘(KST) 아직 동기화하지 않았으면 올해 공휴일을 받아 없는 날짜만 추가 (D-080, D-082)|
 |프로젝트/src/Newsletter/wwwroot/css/site.css|공통 CSS (배경색)|
 |프로젝트/src/Newsletter/wwwroot/css/register.css|회원가입 화면 CSS|
 |프로젝트/src/Newsletter/wwwroot/css/login.css|로그인 화면 CSS|
@@ -101,7 +101,7 @@
 |프로젝트/tests/Newsletter.Tests/|xUnit v3 테스트 프로젝트|
 |프로젝트/tests/Newsletter.Tests/Newsletter.Tests.csproj|테스트 프로젝트 파일 (웹 프로젝트 참조)|
 |프로젝트/tests/Newsletter.Tests/TestHelpers/|테스트 도구 (FakeTimeProvider, FakeMailSender, FakeHolidayApiClient, TestDbContextFactory: EF Core InMemory DB)|
-|프로젝트/tests/Newsletter.Tests/Services/|서비스 테스트 (InputValidatorTests, VerificationRulesTests, EmailVerificationServiceTests, UserServiceTests, AuthServiceTests, HomePathResolverTests, RecipientServiceTests, NewsletterSettingServiceTests, SpecialDayApiClientTests, HolidayServiceTests, KoreanTimeTests)|
+|프로젝트/tests/Newsletter.Tests/Services/|서비스 테스트 (InputValidatorTests, VerificationRulesTests, EmailVerificationServiceTests, UserServiceTests, AuthServiceTests, HomePathResolverTests, RecipientServiceTests, NewsletterSettingServiceTests, SpecialDayApiClientTests, HolidayServiceTests, HolidayRegistrationJobTests, KoreanTimeTests)|
 
 ### 변경 불가능
 - 프로젝트/docs/coding_rule.md

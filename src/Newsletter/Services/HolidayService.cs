@@ -5,7 +5,7 @@ using Newsletter.Models.Entities;
 namespace Newsletter.Services;
 
 /// <summary>
-/// 공휴일 등록과 발송 제외일 판단 (D-031, D-037, D-044, D-080)
+/// 공휴일 동기화와 발송 제외일 판단 (D-031, D-037, D-044, D-080, D-082)
 /// </summary>
 public class HolidayService : IHolidayService
 {
@@ -24,27 +24,29 @@ public class HolidayService : IHolidayService
         _logger = logger;
     }
 
-    public async Task<HolidayRegistrationResult> EnsureYearRegisteredAsync(int year, CancellationToken cancellationToken)
+    public async Task<HolidaySyncResult> SyncYearAsync(int year, CancellationToken cancellationToken)
     {
+        List<HolidayInfo>? holidays = await _holidayApiClient.GetHolidaysAsync(year, cancellationToken);
+        List<HolidayInfo> yearHolidays = holidays?.Where(holiday => holiday.Date.Year == year).ToList() ?? [];
+        if (yearHolidays.Count == 0)
+        {
+            // 실패 또는 0건. 0건은 아직 그해 자료가 없는 것으로 보고 다시 시도한다 (D-080)
+            _logger.LogWarning("{Year}년 공휴일을 받지 못했습니다.", year);
+            return HolidaySyncResult.Failure();
+        }
+
+        // 이미 있는 날짜는 고치거나 지우지 않고, 없는 날짜만 추가한다 (D-082)
         DateOnly firstDay = new(year, 1, 1);
         DateOnly lastDay = new(year, 12, 31);
-        bool isRegistered = await _dbContext.Holidays.AnyAsync(holiday => holiday.HolidayDate >= firstDay && holiday.HolidayDate <= lastDay, cancellationToken);
-        if (isRegistered)
-        {
-            return HolidayRegistrationResult.AlreadyRegistered;
-        }
-
-        List<HolidayInfo>? holidays = await _holidayApiClient.GetHolidaysAsync(year, cancellationToken);
-        if (holidays is null || holidays.Count == 0)
-        {
-            // 0건은 아직 그해 자료가 없는 것으로 보고 다시 시도한다 (D-080)
-            _logger.LogWarning("{Year}년 공휴일을 등록하지 못했습니다.", year);
-            return HolidayRegistrationResult.Failed;
-        }
+        HashSet<DateOnly> savedDates = (await _dbContext.Holidays
+            .Where(holiday => holiday.HolidayDate >= firstDay && holiday.HolidayDate <= lastDay)
+            .Select(holiday => holiday.HolidayDate)
+            .ToListAsync(cancellationToken))
+            .ToHashSet();
 
         DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
-        List<Holiday> newHolidays = holidays
-            .Where(holiday => holiday.Date.Year == year)
+        List<Holiday> newHolidays = yearHolidays
+            .Where(holiday => !savedDates.Contains(holiday.Date))
             .GroupBy(holiday => holiday.Date)
             .Select(group => new Holiday
             {
@@ -55,16 +57,15 @@ public class HolidayService : IHolidayService
                 UpdatedAt = nowUtc,
             })
             .ToList();
-        if (newHolidays.Count == 0)
+
+        if (newHolidays.Count > 0)
         {
-            _logger.LogWarning("{Year}년 공휴일 응답에 그해 날짜가 없습니다.", year);
-            return HolidayRegistrationResult.Failed;
+            _dbContext.Holidays.AddRange(newHolidays);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("{Year}년 공휴일 {Count}일을 추가했습니다.", year, newHolidays.Count);
         }
 
-        _dbContext.Holidays.AddRange(newHolidays);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("{Year}년 공휴일 {Count}일을 등록했습니다.", year, newHolidays.Count);
-        return HolidayRegistrationResult.Registered;
+        return new HolidaySyncResult(true, newHolidays.Count);
     }
 
     public async Task<bool> IsNonWorkingDayAsync(DateOnly date, CancellationToken cancellationToken)

@@ -7,7 +7,7 @@ using Newsletter.Tests.TestHelpers;
 namespace Newsletter.Tests.Services;
 
 /// <summary>
-/// 공휴일 등록과 발송 제외일 판단 (D-031, D-044, D-080) 테스트
+/// 공휴일 동기화와 발송 제외일 판단 (D-031, D-044, D-080, D-082) 테스트
 /// </summary>
 public class HolidayServiceTests
 {
@@ -24,101 +24,136 @@ public class HolidayServiceTests
 
     private async Task AddHolidayAsync(DateOnly date, string name)
     {
-        _dbContext.Holidays.Add(new Holiday { HolidayDate = date, Name = name, CreatedAt = Now, UpdatedAt = Now });
+        _dbContext.Holidays.Add(new Holiday { HolidayDate = date, Name = name, CreatedAt = Now.AddDays(-1), UpdatedAt = Now.AddDays(-1) });
         await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
-    // ---------- 등록 ----------
+    // ---------- 동기화 ----------
     [Fact]
-    public async Task Ensure_NoDataForYear_RegistersFromApi()
+    public async Task Sync_EmptyDb_AddsAll()
     {
-        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 1, 1), "1월1일"), new HolidayInfo(new DateOnly(2026, 3, 2), "대체공휴일")];
+        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 1, 1), "1월1일"), new HolidayInfo(new DateOnly(2026, 3, 2), "대체공휴일(삼일절)")];
 
-        HolidayRegistrationResult result = await _service.EnsureYearRegisteredAsync(2026, CancellationToken.None);
+        HolidaySyncResult result = await _service.SyncYearAsync(2026, CancellationToken.None);
 
-        Assert.Equal(HolidayRegistrationResult.Registered, result);
+        Assert.Equal(new HolidaySyncResult(true, 2), result);
         Assert.Equal(2, _dbContext.Holidays.Count());
         Assert.Equal(Now, _dbContext.Holidays.First().CreatedAt);
     }
 
     [Fact]
-    public async Task Ensure_DataExists_DoesNotCallApi()
+    public async Task Sync_NewTemporaryHoliday_AddsOnlyMissingDate()
     {
-        await AddHolidayAsync(new DateOnly(2026, 12, 25), "기독탄신일"); // 경계: 그해 마지막 공휴일만 있어도 등록된 것으로 본다
+        await AddHolidayAsync(new DateOnly(2026, 1, 1), "1월1일");
+        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 1, 1), "1월1일"), new HolidayInfo(new DateOnly(2026, 6, 3), "전국동시지방선거")];
 
-        HolidayRegistrationResult result = await _service.EnsureYearRegisteredAsync(2026, CancellationToken.None);
+        HolidaySyncResult result = await _service.SyncYearAsync(2026, CancellationToken.None);
 
-        Assert.Equal(HolidayRegistrationResult.AlreadyRegistered, result);
-        Assert.Equal(0, _apiClient.CallCount);
+        Assert.Equal(new HolidaySyncResult(true, 1), result);
+        Assert.Equal(2, _dbContext.Holidays.Count());
     }
 
     [Fact]
-    public async Task Ensure_OnlyPreviousYearExists_CallsApi()
+    public async Task Sync_NothingNew_SucceedsWithZeroAdded()
     {
-        await AddHolidayAsync(new DateOnly(2025, 12, 25), "기독탄신일"); // 경계: 전년 12월 31일 이전 데이터는 올해로 보지 않는다
+        await AddHolidayAsync(new DateOnly(2026, 1, 1), "1월1일");
         _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 1, 1), "1월1일")];
 
-        HolidayRegistrationResult result = await _service.EnsureYearRegisteredAsync(2026, CancellationToken.None);
+        HolidaySyncResult result = await _service.SyncYearAsync(2026, CancellationToken.None);
 
-        Assert.Equal(HolidayRegistrationResult.Registered, result);
-        Assert.Equal(1, _apiClient.CallCount);
+        Assert.Equal(new HolidaySyncResult(true, 0), result);
+        Assert.Single(_dbContext.Holidays);
     }
 
     [Fact]
-    public async Task Ensure_ApiFails_ReturnsFailed()
+    public async Task Sync_ExistingDateWithOtherName_IsNotChanged()
+    {
+        await AddHolidayAsync(new DateOnly(2026, 5, 5), "어린이날");
+        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 5, 5), "바뀐 이름")];
+
+        await _service.SyncYearAsync(2026, CancellationToken.None);
+
+        Assert.Equal("어린이날", Assert.Single(_dbContext.Holidays).Name);
+    }
+
+    [Fact]
+    public async Task Sync_HolidayMissingFromApi_IsNotDeleted()
+    {
+        await AddHolidayAsync(new DateOnly(2026, 6, 3), "전국동시지방선거");
+        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 1, 1), "1월1일")];
+
+        await _service.SyncYearAsync(2026, CancellationToken.None);
+
+        Assert.Equal(2, _dbContext.Holidays.Count()); // 지우지 않는다 (D-082)
+    }
+
+    [Fact]
+    public async Task Sync_ApiFails_ReturnsFailure()
     {
         _apiClient.Holidays = null;
 
-        HolidayRegistrationResult result = await _service.EnsureYearRegisteredAsync(2026, CancellationToken.None);
+        HolidaySyncResult result = await _service.SyncYearAsync(2026, CancellationToken.None);
 
-        Assert.Equal(HolidayRegistrationResult.Failed, result);
+        Assert.False(result.IsSuccess);
         Assert.Empty(_dbContext.Holidays);
     }
 
     [Fact]
-    public async Task Ensure_ApiReturnsNothing_ReturnsFailed()
+    public async Task Sync_ApiReturnsNothing_ReturnsFailure()
     {
         _apiClient.Holidays = []; // 경계: 0건은 아직 자료 없음으로 보고 다시 시도한다 (D-080)
 
-        HolidayRegistrationResult result = await _service.EnsureYearRegisteredAsync(2026, CancellationToken.None);
+        HolidaySyncResult result = await _service.SyncYearAsync(2026, CancellationToken.None);
 
-        Assert.Equal(HolidayRegistrationResult.Failed, result);
+        Assert.False(result.IsSuccess);
     }
 
     [Fact]
-    public async Task Ensure_SameDateTwice_SavesOneRowWithFirstName()
+    public async Task Sync_OnlyOtherYearInResponse_ReturnsFailure()
+    {
+        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2027, 1, 1), "1월1일")];
+
+        HolidaySyncResult result = await _service.SyncYearAsync(2026, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Empty(_dbContext.Holidays);
+    }
+
+    [Fact]
+    public async Task Sync_OtherYearDateInResponse_IsIgnored()
+    {
+        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 12, 31), "임시"), new HolidayInfo(new DateOnly(2027, 1, 1), "1월1일")]; // 경계: 연말과 다음 해 첫날
+
+        await _service.SyncYearAsync(2026, CancellationToken.None);
+
+        Assert.Equal(new DateOnly(2026, 12, 31), Assert.Single(_dbContext.Holidays).HolidayDate);
+    }
+
+    [Fact]
+    public async Task Sync_SameDateTwice_SavesOneRowWithFirstName()
     {
         _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 5, 5), "어린이날"), new HolidayInfo(new DateOnly(2026, 5, 5), "다른 이름")];
 
-        await _service.EnsureYearRegisteredAsync(2026, CancellationToken.None);
+        await _service.SyncYearAsync(2026, CancellationToken.None);
 
-        Holiday saved = Assert.Single(_dbContext.Holidays);
-        Assert.Equal("어린이날", saved.Name);
+        Assert.Equal("어린이날", Assert.Single(_dbContext.Holidays).Name);
     }
 
-    [Fact]
-    public async Task Ensure_OtherYearDateInResponse_IsIgnored()
+    [Theory]
+    [InlineData(50, 50)] // 경계: 50자
+    [InlineData(51, 50)] // 경계: 51자는 50자로 자른다
+    public async Task Sync_LongName_IsCutTo50(int nameLength, int expectedLength)
     {
-        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 1, 1), "1월1일"), new HolidayInfo(new DateOnly(2027, 1, 1), "1월1일")];
+        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 1, 1), new string('가', nameLength))];
 
-        await _service.EnsureYearRegisteredAsync(2026, CancellationToken.None);
+        await _service.SyncYearAsync(2026, CancellationToken.None);
 
-        Assert.Equal(new DateOnly(2026, 1, 1), Assert.Single(_dbContext.Holidays).HolidayDate);
-    }
-
-    [Fact]
-    public async Task Ensure_LongName_IsCutTo50()
-    {
-        _apiClient.Holidays = [new HolidayInfo(new DateOnly(2026, 1, 1), new string('가', 51))]; // 경계: 51자
-
-        await _service.EnsureYearRegisteredAsync(2026, CancellationToken.None);
-
-        Assert.Equal(50, Assert.Single(_dbContext.Holidays).Name.Length);
+        Assert.Equal(expectedLength, Assert.Single(_dbContext.Holidays).Name.Length);
     }
 
     // ---------- 발송 제외일 ----------
     [Theory]
-    [InlineData(2026, 10, 9, false)] // 금요일 (한글날은 아래에서 따로)
+    [InlineData(2026, 10, 8, false)] // 목요일
     [InlineData(2026, 10, 10, true)] // 경계: 토요일
     [InlineData(2026, 10, 11, true)] // 경계: 일요일
     [InlineData(2026, 10, 12, false)] // 경계: 월요일
@@ -132,7 +167,7 @@ public class HolidayServiceTests
     {
         await AddHolidayAsync(new DateOnly(2026, 10, 9), "한글날");
 
-        Assert.True(await _service.IsNonWorkingDayAsync(new DateOnly(2026, 10, 9), CancellationToken.None));
+        Assert.True(await _service.IsNonWorkingDayAsync(new DateOnly(2026, 10, 9), CancellationToken.None)); // 금요일 공휴일
         Assert.False(await _service.IsNonWorkingDayAsync(new DateOnly(2026, 10, 8), CancellationToken.None)); // 경계: 하루 전 평일
     }
 
