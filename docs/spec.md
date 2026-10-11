@@ -9,7 +9,7 @@
 |---|---|---|
 |프레임워크|ASP.NET Core MVC|.NET 10 (SDK 10.0.201)|
 |자동 실행|ASP.NET Core BackgroundService (매분 설정 시간 확인, 추가 라이브러리 없음)| |
-|공휴일 데이터|공공데이터포털 한국천문연구원 특일정보 API| |
+|공휴일 데이터|공공데이터포털 한국천문연구원 특일정보 API, 공휴일 정보 조회(getRestDeInfo, JSON). 키는 User Secrets Holiday:ServiceKey (Decoding 키)| |
 |실행 환경|로컬| |
 |언어|C#, HTML| |
 |스타일링|부트스트랩 (뉴스레터 본문은 HTML + 기본 CSS)| |

@@ -27,26 +27,26 @@
 - 메모: 
 -->
 
-### 뉴스레터 설정 관리
-- 목표: 관리자가 뉴스레터 자동 생성 시간과 자동 발송 시간을 분 단위로 조회하고 저장할 수 있다 (D-036, D-043).
+### 공휴일 등록 (특일정보 API)
+- 목표: 공공데이터포털 한국천문연구원 특일정보 API로 그해 공휴일·대체공휴일을 받아 holidays 테이블에 등록한다. 매년 1월 1일에 등록하고, 앱이 시작될 때 그해 데이터가 없으면 등록한다 (D-015, D-031, D-037, D-044). 자동 생성/발송이 이 데이터로 발송 제외일을 판단한다.
 - 완료 조건:
-  - 관리자가 뉴스레터 설정 관리 화면(/Admin/Settings)에서 지금 설정된 생성 시간과 발송 시간을 본다 (기본값 07:50, 08:00)
-  - 생성 시간과 발송 시간을 분 단위로 바꿔 저장하면 newsletter_settings 1행이 바뀌고, 다시 열어도 바뀐 값이 나온다
-  - 생성 시간이 발송 시간보다 앞서지 않으면(같거나 늦으면) 저장되지 않고 INVALID_SETTING_TIME 메시지가 나온다
-  - 시간 형식이 잘못되면(HH:mm 아님, 범위 밖) INVALID_INPUT으로 응답한다
-  - 일반 사용자와 비로그인 사용자는 화면에 들어갈 수 없고, API는 403 FORBIDDEN / 401 UNAUTHORIZED로 응답한다
-  - test.md 완료 체크리스트(1~15)를 통과한다
+  - 앱을 시작했을 때 올해 공휴일이 DB에 없으면 API로 받아 holidays에 등록하고, 있으면 다시 받지 않는다
+  - 1월 1일(KST)이 되면 그해 공휴일을 등록한다 (앱이 켜져 있을 때)
+  - 대체공휴일이 포함되고, 같은 날짜는 한 행만 저장한다 (holiday_date 유니크)
+  - API 호출이 실패해도 앱은 멈추지 않고, 실패를 로그로 남긴다 (API 키는 로그에 남기지 않는다)
+  - 특정 날짜가 발송 제외일(주말 또는 공휴일)인지 판단하는 기능이 있다 (자동 생성/발송 작업에서 사용)
+  - test.md 완료 체크리스트(1~13)를 통과한다 (화면 없음)
 - 계획:
-  1. DB: newsletter_settings 엔티티 매핑 (테이블과 기본 1행은 이미 있음)
-  2. 화면: Settings_screen.md와 시안 docs/mockups/settings.html 작성 → 사용자 승인 → 화면만 구현 → 화면 확인 → 사용자 확인. 시간은 시·분 선택 상자로 입력한다 (D-079)
-  3. 기능: GET /api/newsletter-settings, POST /api/newsletter-settings (관리자만), settings.js(fetch)
-  4. 테스트: 설정 서비스(조회, 저장, 생성=발송, 생성>발송, 1분 차이, 00:00·23:59 경계, 형식 오류)의 동등 분할·경계값 테스트
-- 계획 승인: 승인 완료, 2026-10-07
-- 현재 단계: 4. 검증 (사용자 최종 확인 대기)
-- 관련 파일: src/Newsletter/(Controllers/AdminController.cs, Controllers/Api/NewsletterSettingsController.cs, Models/Entities/NewsletterSetting.cs, Models/Dtos/, Data/NewsletterDbContext.cs, Services/, Views/Admin/Settings.cshtml, Settings_screen.md, wwwroot/js/settings.js, wwwroot/css/settings.css), docs/mockups/settings.html, tests/Newsletter.Tests/, docs/structure.md, docs/api.md
+  1. 준비: 사용자가 공공데이터포털에서 특일정보 API 활용 신청 후, 키를 User Secrets에 직접 넣는다 (security.md)
+  2. DB: holidays 엔티티 매핑 (테이블은 이미 있음)
+  3. 기능: 특일정보 API 클라이언트(공휴일 정보 조회), 공휴일 등록 서비스(그해 데이터 없으면 등록), 발송 제외일 판단, 앱 시작 직후와 1시간마다 올해 공휴일을 확인·등록하는 BackgroundService (D-080)
+  4. 테스트: API 응답 해석(1건·여러 건·0건·대체공휴일·같은 날짜), 등록 여부 판단, 주말·공휴일·평일 경계(금→토, 일→월, 12/31→1/1) 테스트
+- 계획 승인: 승인 완료, 2026-10-11 (실패 시 1시간마다 재시도, D-080)
+- 현재 단계: 4. 검증 (사용자의 특일정보 API 키 입력 후 실제 등록 확인 대기)
+- 관련 파일: src/Newsletter/(Program.cs, appsettings.json, secrets.example.json, Models/Entities/Holiday.cs, Data/NewsletterDbContext.cs, Services/, BackgroundJobs/), tests/Newsletter.Tests/, docs/structure.md, docs/spec.md
 - 재시도 기록: 없음
 - 메모:
-  - 2026-10-11: 화면 확인 통과. 기능 구현(API 2개, NewsletterSettingService, settings.js). 빌드 경고·오류 0, dotnet test 141개 통과(차단 풀려 dotnet test 다시 사용). 브라우저 확인(바로 검사, 저장·새로고침 유지, INVALID_SETTING_TIME·INVALID_INPUT, 401, 일반 사용자 403·화면 이동) 후 설정을 07:50/08:00으로 되돌리고 임시 계정 삭제
+  - 2026-10-11: 구현 완료(Holiday 매핑, SpecialDayApiClient, HolidayService, HolidayRegistrationJob, KoreanTime). 빌드 경고·오류 0, 테스트 165개 통과. 키 없이 실행해 "키 미설정 → 등록 실패 → 60분 뒤 재시도" 로그와 앱 정상 동작 확인. 남은 것: 사용자가 키를 넣은 뒤 실제 API로 2026년 공휴일 등록 확인
 
 ---
 
@@ -56,7 +56,6 @@
 
 "진행 중"에서 옮긴 작업은 "진행 중" 형식의 내용을 그대로 유지한 채 옮긴다.
 
-- [ ] 공휴일 등록 (특일정보 API)
 - [ ] 뉴스레터 직접 생성/발송 (임시 데이터)
 - [ ] 뉴스레터 자동 생성/발송 (스케줄러)
 - [ ] 뉴스레터 히스토리
@@ -75,12 +74,12 @@
 ## 세션 인계
 
 - **마지막 갱신**: 2026-10-11
-- **현재 상태**: 회원가입, 로그인, 수신자 관리 작업을 완료했다(아래 "완료"). 뉴스레터 설정 관리를 진행 중이다: 계획 승인, D-079, 설계·시안 승인, 화면 코드(Settings.cshtml, settings.css, AdminController.Settings) 작성·빌드 성공. 화면 확인은 애플리케이션 제어 정책의 dll 차단으로 막혔다("막힌 일"). 2026-10-07 세션은 사용자 요청으로 여기서 종료했다.
-  - 코드: src/Newsletter(MVC, .NET 10), tests/Newsletter.Tests(xUnit v3, 118개 통과). DB는 로컬 SQL Server 2025 Developer의 newsletter.
+- **현재 상태**: 회원가입, 로그인, 수신자 관리, 뉴스레터 설정 관리 작업을 완료했다(아래 "완료"). 다음 작업인 공휴일 등록의 계획을 "진행 중"에 적고 사용자 승인을 기다리는 중이다.
+  - 코드: src/Newsletter(MVC, .NET 10), tests/Newsletter.Tests(xUnit v3, 141개 통과). DB는 로컬 SQL Server 2025 Developer의 newsletter.
   - 계정: wjdgkr3386(Admin, D-073)만 있다. 확인용 계정이 필요하면 무작위 비밀번호로 임시 계정을 만들어 확인 후 지운다(비밀번호는 scratchpad에만 두고 채팅에 쓰지 않는다).
   - 실행: 앱 내 브라우저는 .claude/launch.json의 "newsletter"(http://localhost:5044), 시안은 "mockups"(포트 5500).
   - main에 병합·푸시 완료(91c75f7, 2026-10-11). 빌드 결과물(bin, obj)은 저장소에서 뺐다. 커밋·푸시는 사용자가 직접 한다(git.md).
-- **다음에 할 일**: "막힌 일"의 dll 차단을 사용자와 해결한다(스마트 앱 컨트롤 끄기, Visual Studio 실행 확인, 다시 시도 중 선택). 해결되면 설정 화면 확인(loop.md 3-4, 3-5) → 기능(GET/POST /api/newsletter-settings, settings.js) → 테스트를 진행한다. 설정 화면 작업분은 아직 커밋하지 않았다.
+- **다음에 할 일**: 공휴일 등록 계획 승인을 받고 loop.md 3번(구현)을 진행한다. 사용자가 특일정보 API 키를 User Secrets에 넣어야 한다.
 - **주의 사항**:
   - 석유 데이터 출처가 미정이다(D-050). 정해질 때까지 임시 데이터로 개발한다.
   - User Secrets 등 AppData 아래 설정은 사용자가 cmd에서 직접 넣는다(security.md). Claude 데스크톱 앱(MSIX)에서는 AI가 쓴 AppData 파일이 앱 전용 가상 폴더(AppData\Local\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming)에 저장되어 서로 다른 파일을 보게 된다. 키 3개(ConnectionStrings:Newsletter, Mail:SenderAddress, Mail:AppPassword)는 사용자가 넣었다.
@@ -92,6 +91,7 @@
 
 ## 완료
 
+- 2026-10-11 뉴스레터 설정 관리: 생성·발송 시간 시·분 선택 상자(D-079), 바로 검사(생성 < 발송), 조회·저장 API(관리자만, HH:mm 형식만). 빌드 경고·오류 0, 테스트 141개 통과, 사용자 확인 완료
 - 2026-10-07 수신자 관리: 수신자 목록(이름·이메일, 10명씩 페이징), 추가·삭제 팝업(여러 명 선택, 검색, 선택 유지, 전체 선택), API 4개(하나라도 오류면 전체 취소), 로그인 후 본문 960px 가운데(D-078). D-075~D-078. 빌드 경고·오류 0, 테스트 118개 통과, 사용자 확인 완료
 - 2026-10-07 로그인 (일반 사용자/관리자 구분, 좌측 네비게이션): 쿠키 인증(60분, 요청 시 연장, HttpOnly, SameSite=Strict), 관리자 전용 권한, 로그인·로그아웃 API, 로그인 화면, 좌측 네비게이션 레이아웃(사용자 정보 표시 안 함 D-074), 빈 화면 2개(D-070), 루트 주소·로그인 사용자 이동(D-071, D-072), 관리자 계정 지정(D-073). 빌드 경고·오류 0, 테스트 103개 통과, 사용자 화면 확인 완료
 - 2026-10-07 회원가입 (이메일 인증 코드 포함): 프로젝트 생성, DB 생성, API 3개(인증 코드 발송·확인, 회원가입), Gmail 발송, 화면(실시간 검사 D-067, 5번 틀리면 무효 D-068, 발송 즉시 화면 전환 D-069). 빌드 경고·오류 0, 테스트 88개 통과, 사용자가 실제 메일 수신과 가입 확인

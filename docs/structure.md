@@ -38,7 +38,7 @@
 |프로젝트/src/Newsletter/|ASP.NET Core MVC 웹 프로젝트|
 |프로젝트/src/Newsletter/Newsletter.csproj|웹 프로젝트 파일 (패키지 참조, UserSecretsId)|
 |프로젝트/src/Newsletter/Program.cs|앱 시작, 서비스 등록, 쿠키 인증·스케줄러 설정|
-|프로젝트/src/Newsletter/appsettings.json|비밀 정보를 뺀 설정 (Mail: SmtpHost, SmtpPort, SenderName). 비밀 정보는 User Secrets에 둔다|
+|프로젝트/src/Newsletter/appsettings.json|비밀 정보를 뺀 설정 (Mail: SmtpHost, SmtpPort, SenderName / Holiday: BaseUrl / HttpClient 로그는 Warning부터). 비밀 정보는 User Secrets에 둔다|
 |프로젝트/src/Newsletter/secrets.example.json|User Secrets에 넣을 키 이름 목록 (값 없음). 사용자가 cmd에서 직접 넣는다|
 |프로젝트/src/Newsletter/appsettings.Development.json|개발 환경 설정|
 |프로젝트/src/Newsletter/Properties/launchSettings.json|로컬 실행 설정 (http://localhost:5044)|
@@ -76,11 +76,12 @@
 |프로젝트/src/Newsletter/Views/Shared/_AppLayout_screen.md|로그인 후 공통 레이아웃(좌측 네비게이션) 설계 문서|
 |프로젝트/src/Newsletter/Views/Shared/_AppLayout.cshtml|로그인 후 공통 레이아웃 (좌측 네비게이션, 권한별 메뉴, 로그아웃)|
 |프로젝트/src/Newsletter/Models/ErrorViewModel.cs|MVC 템플릿 기본 오류 화면 모델|
-|프로젝트/src/Newsletter/Models/Entities/|DB 테이블과 매핑되는 엔티티 클래스 (User, UserRole, EmailVerification, Recipient, NewsletterSetting)|
+|프로젝트/src/Newsletter/Models/Entities/|DB 테이블과 매핑되는 엔티티 클래스 (User, UserRole, EmailVerification, Recipient, NewsletterSetting, Holiday)|
 |프로젝트/src/Newsletter/Models/Dtos/|API 요청·응답 클래스 (공통 응답 ApiSuccessResponse, ApiErrorResponse, ApiErrorBody, EmptyData와 회원가입·로그인·수신자·뉴스레터 설정 API 요청·응답)|
-|프로젝트/src/Newsletter/Data/NewsletterDbContext.cs|EF Core DbContext (users, email_verifications, recipients, newsletter_settings 매핑. 마이그레이션 없음)|
-|프로젝트/src/Newsletter/Services/|비즈니스 로직. ErrorCodes, ServiceError, ServiceResult, InputValidator(입력값 검증), VerificationRules(인증 코드 만료), MailOptions, IMailSender, GmailMailSender, IEmailVerificationService, EmailVerificationService, IUserService, UserService, HomePathResolver(권한별 첫 화면), AuthPolicies(권한 정책 이름), IAuthService, AuthService(로그인 확인), IRecipientService, RecipientService(수신자 관리), INewsletterSettingService, NewsletterSettingService(생성·발송 시간 설정)|
-|프로젝트/src/Newsletter/BackgroundJobs/|BackgroundService 스케줄러 (자동 생성/발송, 공휴일 등록) (예정)|
+|프로젝트/src/Newsletter/Data/NewsletterDbContext.cs|EF Core DbContext (users, email_verifications, recipients, newsletter_settings, holidays 매핑. 마이그레이션 없음)|
+|프로젝트/src/Newsletter/Services/|비즈니스 로직. ErrorCodes, ServiceError, ServiceResult, InputValidator(입력값 검증), VerificationRules(인증 코드 만료), MailOptions, IMailSender, GmailMailSender, IEmailVerificationService, EmailVerificationService, IUserService, UserService, HomePathResolver(권한별 첫 화면), AuthPolicies(권한 정책 이름), IAuthService, AuthService(로그인 확인), IRecipientService, RecipientService(수신자 관리), INewsletterSettingService, NewsletterSettingService(생성·발송 시간 설정), KoreanTime(KST 날짜), HolidayOptions, HolidayInfo, IHolidayApiClient, SpecialDayApiClient(특일정보 API), IHolidayService, HolidayService(공휴일 등록·발송 제외일 판단), HolidayRegistrationResult|
+|프로젝트/src/Newsletter/BackgroundJobs/|BackgroundService 스케줄러|
+|프로젝트/src/Newsletter/BackgroundJobs/HolidayRegistrationJob.cs|앱 시작 직후와 1시간마다 올해(KST) 공휴일을 확인하고 없으면 등록 (D-080)|
 |프로젝트/src/Newsletter/wwwroot/css/site.css|공통 CSS (배경색)|
 |프로젝트/src/Newsletter/wwwroot/css/register.css|회원가입 화면 CSS|
 |프로젝트/src/Newsletter/wwwroot/css/login.css|로그인 화면 CSS|
@@ -99,8 +100,8 @@
 |프로젝트/src/Newsletter/wwwroot/favicon.ico|파비콘|
 |프로젝트/tests/Newsletter.Tests/|xUnit v3 테스트 프로젝트|
 |프로젝트/tests/Newsletter.Tests/Newsletter.Tests.csproj|테스트 프로젝트 파일 (웹 프로젝트 참조)|
-|프로젝트/tests/Newsletter.Tests/TestHelpers/|테스트 도구 (FakeTimeProvider, FakeMailSender, TestDbContextFactory: EF Core InMemory DB)|
-|프로젝트/tests/Newsletter.Tests/Services/|서비스 테스트 (InputValidatorTests, VerificationRulesTests, EmailVerificationServiceTests, UserServiceTests, AuthServiceTests, HomePathResolverTests, RecipientServiceTests, NewsletterSettingServiceTests)|
+|프로젝트/tests/Newsletter.Tests/TestHelpers/|테스트 도구 (FakeTimeProvider, FakeMailSender, FakeHolidayApiClient, TestDbContextFactory: EF Core InMemory DB)|
+|프로젝트/tests/Newsletter.Tests/Services/|서비스 테스트 (InputValidatorTests, VerificationRulesTests, EmailVerificationServiceTests, UserServiceTests, AuthServiceTests, HomePathResolverTests, RecipientServiceTests, NewsletterSettingServiceTests, SpecialDayApiClientTests, HolidayServiceTests, KoreanTimeTests)|
 
 ### 변경 불가능
 - 프로젝트/docs/coding_rule.md
@@ -117,4 +118,5 @@
 - 프로젝트/docs/decision.md
 - 프로젝트/docs/security.md
 - 프로젝트/docs/git.md
+- 프로젝트/docs/reference/
 - 프로젝트/CLAUDE.md

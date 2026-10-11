@@ -26,6 +26,8 @@ public class NewsletterDbContext : DbContext
 
     public DbSet<NewsletterSetting> NewsletterSettings => Set<NewsletterSetting>();
 
+    public DbSet<Holiday> Holidays => Set<Holiday>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -85,6 +87,18 @@ public class NewsletterDbContext : DbContext
             entity.Property(setting => setting.LastSendDate).HasColumnName("last_send_date").HasColumnType("date");
             entity.Property(setting => setting.CreatedAt).HasColumnName("created_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
             entity.Property(setting => setting.UpdatedAt).HasColumnName("updated_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
+        });
+
+        modelBuilder.Entity<Holiday>(entity =>
+        {
+            entity.ToTable("holidays");
+            entity.HasKey(holiday => holiday.Id);
+            entity.Property(holiday => holiday.Id).HasColumnName("id");
+            entity.Property(holiday => holiday.HolidayDate).HasColumnName("holiday_date").HasColumnType("date");
+            entity.Property(holiday => holiday.Name).HasColumnName("name").HasColumnType("nvarchar(50)").HasMaxLength(50);
+            entity.Property(holiday => holiday.CreatedAt).HasColumnName("created_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
+            entity.Property(holiday => holiday.UpdatedAt).HasColumnName("updated_at").HasColumnType("datetime2(0)").HasConversion(UtcConverter);
+            entity.HasIndex(holiday => holiday.HolidayDate).IsUnique().HasDatabaseName("idx_holidays_holiday_date");
         });
     }
 }

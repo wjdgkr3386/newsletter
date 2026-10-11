@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newsletter.BackgroundJobs;
 using Newsletter.Data;
 using Newsletter.Models.Dtos;
 using Newsletter.Models.Entities;
@@ -63,6 +64,12 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRecipientService, RecipientService>();
 builder.Services.AddScoped<INewsletterSettingService, NewsletterSettingService>();
+
+// 공휴일 등록 (D-044, D-080)
+builder.Services.Configure<HolidayOptions>(builder.Configuration.GetSection(HolidayOptions.SectionName));
+builder.Services.AddHttpClient<IHolidayApiClient, SpecialDayApiClient>(client => client.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddScoped<IHolidayService, HolidayService>();
+builder.Services.AddHostedService<HolidayRegistrationJob>();
 
 var app = builder.Build();
 
