@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>로그인 후 레이아웃 시안 - 뉴스레터</title>
+    <link rel="stylesheet" href="../../src/Newsletter/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { background-color: #F8F9FA; }
+        .mockup-bar { background-color: #6C757D; color: #FFFFFF; padding: 8px 16px; font-size: 14px; }
+        .app-wrapper { display: flex; min-height: calc(100vh - 47px); }
+        .app-nav { width: 220px; flex-shrink: 0; background-color: #212529; color: #FFFFFF; display: flex; flex-direction: column; padding: 24px 16px; }
+        .app-nav .nav-link { color: #FFFFFF; }
+        .app-content { flex-grow: 1; padding: 32px; }
+        .app-content-inner { max-width: 960px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <!-- 시안 전용: 상태를 바꿔 보는 막대. 실제 화면에는 없다 -->
+    <div class="mockup-bar">
+        <span class="me-2">시안 상태 보기 (실제 화면에는 없음):</span>
+        <select id="state-select" class="form-select form-select-sm d-inline-block w-auto">
+            <option value="admin-send">관리자 - 뉴스레터 발송 (빈 화면)</option>
+            <option value="admin-history">관리자 - 히스토리 (빈 화면)</option>
+            <option value="user-history">일반 사용자 - 히스토리 (빈 화면)</option>
+        </select>
+    </div>
+
+    <div class="app-wrapper">
+        <nav class="app-nav">
+            <div class="fs-5 mb-4">뉴스레터</div>
+
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item admin-menu"><a href="#" id="menu-send" class="nav-link">뉴스레터 발송</a></li>
+                <li class="nav-item admin-menu"><a href="#" id="menu-recipients" class="nav-link">수신자 관리</a></li>
+                <li class="nav-item admin-menu"><a href="#" id="menu-settings" class="nav-link">뉴스레터 설정 관리</a></li>
+                <li class="nav-item"><a href="#" id="menu-history" class="nav-link">히스토리</a></li>
+            </ul>
+
+            <button type="button" class="btn btn-outline-light btn-sm w-100">로그아웃</button>
+        </nav>
+
+        <main class="app-content">
+            <div class="app-content-inner">
+                <h1 id="page-title" class="h4 mb-4">뉴스레터 발송</h1>
+                <p class="text-secondary">준비 중인 화면입니다.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 시안 전용: 상태별 화면을 보여주기 위한 코드. 실제 기능 코드가 아니다
+        function byId(id) { return document.getElementById(id); }
+
+        function applyState(state) {
+            const isAdmin = state.indexOf('admin') === 0;
+            document.querySelectorAll('.admin-menu').forEach(function (item) { item.classList.toggle('d-none', !isAdmin); });
+            document.querySelectorAll('.app-nav .nav-link').forEach(function (link) { link.classList.remove('active'); });
+
+            const isSend = state === 'admin-send';
+            byId(isSend ? 'menu-send' : 'menu-history').classList.add('active');
+            byId('page-title').textContent = isSend ? '뉴스레터 발송' : '히스토리 목록';
+        }
+
+        byId('state-select').addEventListener('change', function (event) { applyState(event.target.value); });
+        applyState('admin-send');
+    </script>
+</body>
+</html>

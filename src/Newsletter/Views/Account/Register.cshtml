@@ -1,0 +1,75 @@
+@{
+    ViewData["Title"] = "회원가입";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/register.css" asp-append-version="true" />
+}
+
+<div class="card register-card">
+    <div class="card-body p-4">
+        @Html.AntiForgeryToken()
+        <p class="text-secondary text-center small mb-1">뉴스레터</p>
+        <h1 class="h4 text-center mb-4">회원가입</h1>
+
+        <div id="global-error" class="alert alert-danger d-none" role="alert"></div>
+
+        <div class="mb-3">
+            <label for="login-id" class="form-label">아이디</label>
+            <input type="text" id="login-id" class="form-control" maxlength="20" autocomplete="username" />
+            <div class="form-text">영문 소문자, 숫자 6~20자</div>
+            <div id="login-id-error" class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">비밀번호</label>
+            <input type="password" id="password" class="form-control" maxlength="20" autocomplete="new-password" />
+            <div class="form-text">8~20자, 영문·숫자·특수문자 각 1자 이상</div>
+            <div id="password-error" class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="password-confirm" class="form-label">비밀번호 확인</label>
+            <input type="password" id="password-confirm" class="form-control" maxlength="20" autocomplete="new-password" />
+            <div class="form-text">비밀번호를 한 번 더 입력</div>
+            <div id="password-confirm-error" class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">이메일</label>
+            <div class="input-group has-validation">
+                <input type="email" id="email" class="form-control" maxlength="50" autocomplete="email" />
+                <button type="button" id="btn-send-code" class="btn btn-outline-primary">인증 코드 발송</button>
+                <div id="email-error" class="invalid-feedback"></div>
+            </div>
+            <div class="form-text">인증 코드를 받을 이메일</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="code" class="form-label">인증 코드</label>
+            <div class="input-group has-validation">
+                <input type="text" id="code" class="form-control" maxlength="6" inputmode="numeric" autocomplete="one-time-code" disabled />
+                <span id="code-timer" class="input-group-text code-timer d-none"></span>
+                <button type="button" id="btn-confirm-code" class="btn btn-outline-primary" disabled>확인</button>
+                <div id="code-error" class="invalid-feedback"></div>
+            </div>
+            <div class="form-text">메일로 받은 6자리 숫자</div>
+            <div id="verified-text" class="text-success small mt-1 d-none">이메일 인증이 완료되었습니다.</div>
+        </div>
+
+        <div class="mb-4">
+            <label for="name" class="form-label">이름</label>
+            <input type="text" id="name" class="form-control" maxlength="30" autocomplete="name" />
+            <div class="form-text">2~30자</div>
+            <div id="name-error" class="invalid-feedback"></div>
+        </div>
+
+        <button type="button" id="btn-register" class="btn btn-primary w-100" disabled>가입하기</button>
+
+        <p class="text-center small text-secondary mt-3 mb-0">이미 계정이 있나요? <a href="/Account/Login">로그인</a></p>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/register.js" asp-append-version="true"></script>
+}

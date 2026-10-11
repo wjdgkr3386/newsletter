@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>수신자 관리 시안 - 뉴스레터</title>
+    <link rel="stylesheet" href="../../src/Newsletter/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { background-color: #F8F9FA; }
+        .mockup-bar { background-color: #6C757D; color: #FFFFFF; padding: 8px 16px; font-size: 14px; }
+        .app-wrapper { display: flex; min-height: calc(100vh - 47px); }
+        .app-nav { width: 220px; flex-shrink: 0; background-color: #212529; color: #FFFFFF; display: flex; flex-direction: column; padding: 24px 16px; }
+        .app-nav .nav-link { color: #FFFFFF; }
+        .app-content { flex-grow: 1; padding: 32px; }
+        .app-content-inner { max-width: 960px; margin: 0 auto; }
+        .picker-table tbody tr { cursor: pointer; }
+        .recipients-area h1, .recipients-area td, .picker-table td { white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <!-- 시안 전용: 상태를 바꿔 보는 막대. 실제 화면에는 없다 -->
+    <div class="mockup-bar">
+        <span class="me-2">시안 상태 보기 (실제 화면에는 없음):</span>
+        <select id="state-select" class="form-select form-select-sm d-inline-block w-auto">
+            <option value="list">수신자 목록 (13명, 1페이지)</option>
+            <option value="list-page2">수신자 목록 (2페이지)</option>
+            <option value="empty">수신자 없음</option>
+            <option value="added">추가 성공 알림</option>
+            <option value="add-popup">추가 팝업 (12명, 2명 선택)</option>
+            <option value="add-page2">추가 팝업 - 2페이지 (다른 페이지 선택 유지)</option>
+            <option value="add-search">추가 팝업 - 검색 "kim"</option>
+            <option value="add-no-result">추가 팝업 - 검색 결과 없음</option>
+            <option value="add-empty">추가 팝업 - 추가할 회원 없음</option>
+            <option value="add-error">추가 팝업 - 오류</option>
+            <option value="delete-popup">삭제 팝업 (1명 선택)</option>
+        </select>
+    </div>
+
+    <div class="app-wrapper">
+        <nav class="app-nav">
+            <div class="fs-5 mb-4">뉴스레터</div>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item"><a href="#" class="nav-link">뉴스레터 발송</a></li>
+                <li class="nav-item"><a href="#" class="nav-link active">수신자 관리</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">뉴스레터 설정 관리</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">히스토리</a></li>
+            </ul>
+            <button type="button" class="btn btn-outline-light btn-sm w-100">로그아웃</button>
+        </nav>
+
+        <main class="app-content">
+            <div class="app-content-inner recipients-area">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h1 class="h4 mb-0">수신자 관리</h1>
+                    <div>
+                        <button type="button" class="btn btn-primary">수신자 추가</button>
+                        <button type="button" class="btn btn-outline-danger ms-1">수신자 삭제</button>
+                    </div>
+                </div>
+
+                <div id="page-alert" class="alert alert-success d-none" role="alert">2명을 수신자로 추가했습니다.</div>
+
+                <p id="recipient-count" class="small text-secondary mb-2"></p>
+                <table id="recipient-table" class="table table-bordered bg-white">
+                    <thead class="table-light">
+                        <tr><th style="width: 30%">이름</th><th>이메일</th></tr>
+                    </thead>
+                    <tbody id="recipient-rows"></tbody>
+                </table>
+                <nav id="recipient-paging" aria-label="수신자 목록 페이지"></nav>
+                <p id="recipient-empty" class="text-secondary d-none">등록된 수신자가 없습니다.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- 추가/삭제 팝업 (같은 모양) -->
+    <div class="modal fade" id="picker-modal" tabindex="-1">
+        <div class="modal-dialog" style="max-width: 500px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="picker-title" class="modal-title fs-5">수신자 추가</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="picker-error" class="alert alert-danger d-none" role="alert">이미 수신자로 등록된 회원이 있습니다.</div>
+                    <input type="text" id="picker-search" class="form-control mb-3" placeholder="이름 또는 이메일 검색" />
+                    <table id="picker-table" class="table table-bordered picker-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 44px"><input type="checkbox" class="form-check-input" /></th>
+                                <th style="width: 30%">이름</th>
+                                <th>이메일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="picker-rows"></tbody>
+                    </table>
+                    <p id="picker-empty" class="text-secondary mb-0 d-none"></p>
+                    <nav id="picker-paging" class="mt-3" aria-label="팝업 목록 페이지"></nav>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <span id="picker-selected" class="small text-secondary">0명 선택</span>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" id="picker-submit" class="btn btn-primary ms-1">추가</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../src/Newsletter/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 시안 전용: 상태별 화면을 보여주기 위한 코드. 실제 기능 코드가 아니다
+        const PAGE_SIZE = 10;
+        const RECIPIENTS = [
+            ['김민수', 'minsu.kim@gmail.com'], ['김하늘', 'haneul@gmail.com'], ['남궁민', 'nkmin@naver.com'],
+            ['박지민', 'jimin.park@gmail.com'], ['서지우', 'jiwoo@daum.net'], ['오세훈', 'sehoon@gmail.com'],
+            ['윤아름', 'areum@naver.com'], ['이서연', 'seoyeon@naver.com'], ['장민호', 'minho@gmail.com'],
+            ['정다은', 'daeun@gmail.com'], ['조현우', 'hyunwoo@daum.net'], ['최유진', 'yujin@gmail.com'],
+            ['홍길동', 'gildong@gmail.com']
+        ];
+        const MEMBERS = [
+            ['강다현', 'dahyun@gmail.com'], ['김지훈', 'jihoon.kim@gmail.com'], ['노승우', 'seungwoo@naver.com'],
+            ['류하준', 'hajun@gmail.com'], ['문소희', 'sohee@daum.net'], ['박영희', 'younghee@daum.net'],
+            ['배준서', 'junseo@gmail.com'], ['신예린', 'yerin@naver.com'], ['안도윤', 'doyoon@gmail.com'],
+            ['임채원', 'chaewon@gmail.com'], ['최수진', 'sujin.choi@gmail.com'], ['Kim Ann', 'ann.kim@example.com']
+        ];
+        const modal = new bootstrap.Modal(document.getElementById('picker-modal'));
+
+        function byId(id) { return document.getElementById(id); }
+
+        function pageRows(rows, page) {
+            return rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+        }
+
+        function fillRows(tbody, rows, withCheck, checkedIndexes) {
+            tbody.textContent = '';
+            rows.forEach(function (row, index) {
+                const tr = document.createElement('tr');
+                const isChecked = withCheck && checkedIndexes.indexOf(index) >= 0;
+                if (isChecked) { tr.classList.add('table-active'); }
+                if (withCheck) {
+                    const td = document.createElement('td');
+                    const box = document.createElement('input');
+                    box.type = 'checkbox';
+                    box.className = 'form-check-input';
+                    box.checked = isChecked;
+                    td.appendChild(box);
+                    tr.appendChild(td);
+                }
+                row.forEach(function (text) {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+
+        function fillPaging(nav, totalCount, currentPage, isSmall) {
+            nav.textContent = '';
+            const pageCount = Math.ceil(totalCount / PAGE_SIZE);
+            nav.classList.toggle('d-none', pageCount <= 1);
+            const list = document.createElement('ul');
+            list.className = 'pagination justify-content-center mb-0' + (isSmall ? ' pagination-sm' : '');
+            const labels = ['이전'];
+            for (let page = 1; page <= pageCount; page++) { labels.push(String(page)); }
+            labels.push('다음');
+            labels.forEach(function (label) {
+                const item = document.createElement('li');
+                const isDisabled = (label === '이전' && currentPage === 1) || (label === '다음' && currentPage === pageCount);
+                item.className = 'page-item' + (label === String(currentPage) ? ' active' : '') + (isDisabled ? ' disabled' : '');
+                const link = document.createElement('a');
+                link.className = 'page-link';
+                link.href = '#';
+                link.textContent = label;
+                item.appendChild(link);
+                list.appendChild(item);
+            });
+            nav.appendChild(list);
+        }
+
+        function showMain(rows, page) {
+            fillRows(byId('recipient-rows'), pageRows(rows, page), false, []);
+            fillPaging(byId('recipient-paging'), rows.length, page, false);
+            byId('recipient-count').textContent = '수신자 ' + rows.length + '명';
+            byId('recipient-table').classList.toggle('d-none', rows.length === 0);
+            byId('recipient-empty').classList.toggle('d-none', rows.length !== 0);
+        }
+
+        function showPicker(isAdd, rows, page, checkedIndexes, selectedCount, search, emptyText, isError) {
+            byId('picker-title').textContent = isAdd ? '수신자 추가' : '수신자 삭제';
+            byId('picker-submit').textContent = isAdd ? '추가' : '삭제';
+            byId('picker-submit').className = 'btn ms-1 ' + (isAdd ? 'btn-primary' : 'btn-danger');
+            byId('picker-search').value = search;
+            byId('picker-error').classList.toggle('d-none', !isError);
+            fillRows(byId('picker-rows'), pageRows(rows, page), true, checkedIndexes);
+            fillPaging(byId('picker-paging'), rows.length, page, true);
+            byId('picker-table').classList.toggle('d-none', rows.length === 0);
+            byId('picker-empty').textContent = emptyText;
+            byId('picker-empty').classList.toggle('d-none', rows.length !== 0);
+            byId('picker-selected').textContent = selectedCount + '명 선택';
+            byId('picker-submit').disabled = selectedCount === 0;
+            modal.show();
+        }
+
+        function applyState(state) {
+            modal.hide();
+            byId('page-alert').classList.toggle('d-none', state !== 'added');
+            showMain(state === 'empty' ? [] : RECIPIENTS, state === 'list-page2' ? 2 : 1);
+
+            if (state === 'add-popup') {
+                showPicker(true, MEMBERS, 1, [1, 5], 2, '', '', false);
+            } else if (state === 'add-page2') {
+                showPicker(true, MEMBERS, 2, [0], 3, '', '', false);
+            } else if (state === 'add-search') {
+                showPicker(true, [MEMBERS[1], MEMBERS[11]], 1, [0], 1, 'kim', '', false);
+            } else if (state === 'add-no-result') {
+                showPicker(true, [], 1, [], 0, 'zzz', '검색 결과가 없습니다.', false);
+            } else if (state === 'add-empty') {
+                showPicker(true, [], 1, [], 0, '', '추가할 수 있는 회원이 없습니다.', false);
+            } else if (state === 'add-error') {
+                showPicker(true, MEMBERS, 1, [5], 1, '', '', true);
+            } else if (state === 'delete-popup') {
+                showPicker(false, RECIPIENTS, 1, [7], 1, '', '', false);
+            }
+        }
+
+        byId('state-select').addEventListener('change', function (event) { applyState(event.target.value); });
+        applyState('list');
+    </script>
+</body>
+</html>

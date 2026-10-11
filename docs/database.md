@@ -87,11 +87,16 @@ create table email_verifications(
  expires_at datetime2(0) not null, -- 만료 시각 (UTC). 발송 시각 + 10분 (D-032)
  is_verified bit not null constraint df_email_verifications_is_verified default 0, -- 인증 완료 여부
  created_at datetime2(0) not null constraint df_email_verifications_created_at default sysutcdatetime(), -- 생성 시각 (UTC)
- updated_at datetime2(0) not null constraint df_email_verifications_updated_at default sysutcdatetime() -- 수정 시각 (UTC)
+ updated_at datetime2(0) not null constraint df_email_verifications_updated_at default sysutcdatetime(), -- 수정 시각 (UTC)
+ fail_count int not null constraint df_email_verifications_fail_count default 0 -- 코드를 틀린 횟수. 5번이면 이 코드는 무효 (D-068)
 );
 create index idx_email_verifications_email on email_verifications(email);
 ```
 - 코드를 다시 보내면 새 행을 만든다. 확인과 가입에는 그 이메일의 가장 최근 행만 쓴다.
+- `fail_count`는 2026-10-07에 기존 DB에 아래 문으로 추가했다. 새로 만들 때는 위 create table만 실행한다.
+  ```sql
+  alter table email_verifications add fail_count int not null constraint df_email_verifications_fail_count default 0;
+  ```
 
 ### 4.3 recipients (수신자)
 ```sql

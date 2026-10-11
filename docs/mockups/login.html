@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>로그인 시안 - 뉴스레터</title>
+    <link rel="stylesheet" href="../../src/Newsletter/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { background-color: #F8F9FA; }
+        .mockup-bar { background-color: #212529; color: #FFFFFF; padding: 8px 16px; font-size: 14px; }
+        .login-card { width: 400px; margin: 64px auto; }
+    </style>
+</head>
+<body>
+    <!-- 시안 전용: 상태를 바꿔 보는 막대. 실제 화면에는 없다 -->
+    <div class="mockup-bar">
+        <span class="me-2">시안 상태 보기 (실제 화면에는 없음):</span>
+        <select id="state-select" class="form-select form-select-sm d-inline-block w-auto">
+            <option value="initial">처음 열었을 때</option>
+            <option value="empty">빈 칸으로 로그인</option>
+            <option value="submitting">로그인 처리 중</option>
+            <option value="failed">로그인 실패</option>
+            <option value="server-error">서버 오류</option>
+        </select>
+    </div>
+
+    <div class="card login-card">
+        <div class="card-body p-4">
+            <p class="text-secondary text-center small mb-1">뉴스레터</p>
+            <h1 class="h4 text-center mb-4">로그인</h1>
+
+            <div id="global-error" class="alert alert-danger d-none" role="alert"></div>
+
+            <div class="mb-3">
+                <label for="login-id" class="form-label">아이디</label>
+                <input type="text" id="login-id" class="form-control" maxlength="20" />
+                <div class="invalid-feedback">아이디를 입력해 주세요.</div>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">비밀번호</label>
+                <input type="password" id="password" class="form-control" maxlength="20" />
+                <div class="invalid-feedback">비밀번호를 입력해 주세요.</div>
+            </div>
+
+            <button type="button" id="btn-login" class="btn btn-primary w-100">로그인</button>
+
+            <p class="text-center small text-secondary mt-3 mb-0">계정이 없나요? <a href="register.html">회원가입</a></p>
+        </div>
+    </div>
+
+    <script>
+        // 시안 전용: 상태별 화면을 보여주기 위한 코드. 실제 기능 코드가 아니다
+        function byId(id) { return document.getElementById(id); }
+
+        function applyState(state) {
+            ['login-id', 'password'].forEach(function (id) {
+                byId(id).value = '';
+                byId(id).classList.remove('is-invalid');
+            });
+            byId('global-error').classList.add('d-none');
+            byId('btn-login').disabled = false;
+            byId('btn-login').textContent = '로그인';
+
+            if (state === 'initial' || state === 'empty') {
+                if (state === 'empty') {
+                    byId('login-id').classList.add('is-invalid');
+                    byId('password').classList.add('is-invalid');
+                } else {
+                    byId('login-id').focus();
+                }
+                return;
+            }
+
+            byId('login-id').value = 'newsuser01';
+            if (state === 'submitting') {
+                byId('password').value = 'abcd1234!';
+                byId('btn-login').disabled = true;
+                byId('btn-login').textContent = '로그인 중...';
+            } else if (state === 'failed') {
+                byId('global-error').textContent = '아이디 또는 비밀번호가 맞지 않습니다.';
+                byId('global-error').classList.remove('d-none');
+            } else if (state === 'server-error') {
+                byId('password').value = 'abcd1234!';
+                byId('global-error').textContent = '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+                byId('global-error').classList.remove('d-none');
+            }
+        }
+
+        byId('state-select').addEventListener('change', function (event) { applyState(event.target.value); });
+        applyState('initial');
+    </script>
+</body>
+</html>

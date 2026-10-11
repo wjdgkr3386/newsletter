@@ -73,6 +73,7 @@ API의 기준 문서다. API를 추가하거나 바꾸는 작업에서는 이 �
 <!-- 프로젝트 전용 오류 코드는 이 아래에 추가한다 -->
 | 400 | VERIFICATION_CODE_INVALID | 인증 코드가 맞지 않음 |
 | 400 | VERIFICATION_CODE_EXPIRED | 인증 코드 유효 시간(10분)이 지남 |
+| 400 | VERIFICATION_CODE_LOCKED | 인증 코드를 5번 틀려 그 코드를 더 이상 쓸 수 없음 (D-068) |
 | 400 | EMAIL_NOT_VERIFIED | 이메일 인증을 하지 않음 |
 | 400 | INVALID_SETTING_TIME | 생성 시간이 발송 시간보다 앞서지 않음 |
 | 400 | NO_RECIPIENTS | 발송할 수신자가 없음 |
@@ -124,7 +125,7 @@ API의 기준 문서다. API를 추가하거나 바꾸는 작업에서는 이 �
 - **사용 테이블**: users, email_verifications
 
 #### POST /api/email-verifications/confirm
-- **설명**: 그 이메일로 가장 최근에 보낸 인증 코드를 확인한다.
+- **설명**: 그 이메일로 가장 최근에 보낸 인증 코드를 확인한다. 틀리면 틀린 횟수(email_verifications.fail_count)를 1 늘리고 남은 횟수를 메시지에 담는다. 5번째로 틀리면 그 코드는 무효가 되어 맞는 코드를 넣어도 VERIFICATION_CODE_LOCKED로 응답한다. 재발송하면 새 코드로 다시 시도할 수 있다 (D-068).
 - **권한**: 비회원
 - **요청**:
   | 필드 | 타입 | 필수 | 설명 |
@@ -135,7 +136,7 @@ API의 기준 문서다. API를 추가하거나 바꾸는 작업에서는 이 �
   | 필드 | 타입 | 설명 |
   |---|---|---|
   | isVerified | boolean | 인증 성공이면 true |
-- **오류**: VERIFICATION_CODE_INVALID, VERIFICATION_CODE_EXPIRED, NOT_FOUND(보낸 코드가 없음)
+- **오류**: VERIFICATION_CODE_INVALID, VERIFICATION_CODE_EXPIRED, VERIFICATION_CODE_LOCKED, NOT_FOUND(보낸 코드가 없음)
 - **사용 테이블**: email_verifications
 
 #### POST /api/users
@@ -181,54 +182,64 @@ API의 기준 문서다. API를 추가하거나 바꾸는 작업에서는 이 �
 
 ### 6.2 수신자 관리
 
+수신자 관리 화면 구성은 D-076을 따른다. 목록에는 이름과 이메일만 준다.
+
 #### GET /api/users
-- **설명**: 가입한 회원 전체 목록. 수신자 여부를 함께 준다 (수신자 추가 대상 선택용).
+- **설명**: 가입한 회원 목록 (이름 순). isRecipient로 수신자 여부를 걸러 받을 수 있다. 수신자 추가 팝업은 `?isRecipient=false`로 수신자가 아닌 회원만 받는다.
 - **권한**: 관리자
-- **요청**: 없음
+- **요청 (쿼리)**:
+  | 필드 | 타입 | 필수 | 설명 |
+  |---|---|---|---|
+  | isRecipient | boolean | X | true: 수신자인 회원만, false: 수신자가 아닌 회원만, 없으면 전체 |
 - **응답 data**: 배열
   | 필드 | 타입 | 설명 |
   |---|---|---|
   | id | number | 회원 id |
-  | loginId | string | 아이디 |
   | name | string | 이름 |
   | email | string | 이메일 |
-  | role | string | User / Admin |
   | isRecipient | boolean | 수신자 여부 |
 - **오류**: UNAUTHORIZED, FORBIDDEN
 - **사용 테이블**: users, recipients
 
 #### GET /api/recipients
-- **설명**: 수신자 목록 (수신자 관리 화면, 발송 화면의 수신자 목록)
+- **설명**: 수신자 목록 (이름 순). 수신자 관리 화면 목록, 수신자 삭제 팝업, 발송 화면의 수신자 목록에 쓴다.
 - **권한**: 관리자
 - **요청**: 없음
 - **응답 data**: 배열
   | 필드 | 타입 | 설명 |
   |---|---|---|
   | userId | number | 회원 id |
-  | loginId | string | 아이디 |
   | name | string | 이름 |
   | email | string | 이메일 |
-  | createdAt | string | 수신자 등록 시각 (UTC) |
 - **오류**: UNAUTHORIZED, FORBIDDEN
 - **사용 테이블**: recipients, users
 
 #### POST /api/recipients
-- **설명**: 회원을 수신자로 추가한다.
+- **설명**: 선택한 회원들을 한 번에 수신자로 추가한다 (D-076). 하나라도 오류면 아무도 추가하지 않는다.
 - **권한**: 관리자
 - **요청**:
   | 필드 | 타입 | 필수 | 설명 |
   |---|---|---|---|
-  | userId | number | O | 회원 id |
-- **응답 data**: 없음 (`{}`)
-- **오류**: UNAUTHORIZED, FORBIDDEN, NOT_FOUND(회원 없음), ALREADY_RECIPIENT
+  | userIds | number[] | O | 추가할 회원 id 목록. 1개 이상, 중복 불가 |
+- **응답 data**:
+  | 필드 | 타입 | 설명 |
+  |---|---|---|
+  | count | number | 추가한 수신자 수 |
+- **오류**: UNAUTHORIZED, FORBIDDEN, INVALID_INPUT(빈 목록, 중복 id), NOT_FOUND(없는 회원 포함), ALREADY_RECIPIENT(이미 수신자인 회원 포함)
 - **사용 테이블**: recipients, users
 
-#### POST /api/recipients/{userId}/delete
-- **설명**: 수신자에서 삭제한다. 발송 기록은 남는다 (D-055).
+#### POST /api/recipients/delete
+- **설명**: 선택한 수신자들을 한 번에 삭제한다 (D-076). 발송 기록은 남는다 (D-055). 하나라도 오류면 아무도 삭제하지 않는다.
 - **권한**: 관리자
-- **요청**: 없음 (경로 변수 userId)
-- **응답 data**: 없음 (`{}`)
-- **오류**: UNAUTHORIZED, FORBIDDEN, NOT_FOUND(수신자 아님)
+- **요청**:
+  | 필드 | 타입 | 필수 | 설명 |
+  |---|---|---|---|
+  | userIds | number[] | O | 삭제할 수신자의 회원 id 목록. 1개 이상, 중복 불가 |
+- **응답 data**:
+  | 필드 | 타입 | 설명 |
+  |---|---|---|
+  | count | number | 삭제한 수신자 수 |
+- **오류**: UNAUTHORIZED, FORBIDDEN, INVALID_INPUT(빈 목록, 중복 id), NOT_FOUND(수신자가 아닌 회원 포함)
 - **사용 테이블**: recipients
 
 ### 6.3 뉴스레터 설정 관리
