@@ -56,7 +56,6 @@
 |프로젝트/src/Newsletter/Filters/ApiAntiforgeryAttribute.cs|API POST 요청의 RequestVerificationToken 헤더 검사. 실패 시 INVALID_INPUT JSON 응답|
 |프로젝트/src/Newsletter/Views/_ViewImports.cshtml|뷰 공통 using, 태그 헬퍼|
 |프로젝트/src/Newsletter/Views/_ViewStart.cshtml|뷰 공통 레이아웃 지정|
-
 |프로젝트/src/Newsletter/Views/Account/|로그인, 회원가입 화면|
 |프로젝트/src/Newsletter/Views/Account/Register.cshtml|회원가입 화면 (Razor 뷰, 화면 틀)|
 |프로젝트/src/Newsletter/Views/Account/Register_screen.md|회원가입 화면 설계 문서|
@@ -113,4 +112,5 @@
 - 프로젝트/docs/api.md
 - 프로젝트/docs/decision.md
 - 프로젝트/docs/security.md
+- 프로젝트/docs/git.md
 - 프로젝트/CLAUDE.md
