@@ -16,8 +16,8 @@
 
     <div id="page-alert" class="alert d-none" role="alert"></div>
 
-    <p id="settings-loading" class="text-secondary d-none">불러오는 중...</p>
-    <div id="settings-card" class="card">
+    <p id="settings-loading" class="text-secondary">불러오는 중...</p>
+    <div id="settings-card" class="card d-none">
         <div class="card-body p-4">
             <div class="mb-3">
                 <label for="generate-hour" class="form-label">자동 생성 시간</label>
@@ -25,15 +25,14 @@
                     <select id="generate-hour" class="form-select time-select" aria-label="자동 생성 시">
                         @foreach (string hour in hourOptions)
                         {
-                            @* 임시 데이터: 기능 단계에서 GET /api/newsletter-settings 값으로 바꾼다 *@
-                            <option value="@hour" selected="@(hour == "07")">@hour</option>
+                            <option value="@hour">@hour</option>
                         }
                     </select>
                     <span>시</span>
                     <select id="generate-minute" class="form-select time-select" aria-label="자동 생성 분">
                         @foreach (string minute in minuteOptions)
                         {
-                            <option value="@minute" selected="@(minute == "50")">@minute</option>
+                            <option value="@minute">@minute</option>
                         }
                     </select>
                     <span>분</span>
@@ -46,14 +45,14 @@
                     <select id="send-hour" class="form-select time-select" aria-label="자동 발송 시">
                         @foreach (string hour in hourOptions)
                         {
-                            <option value="@hour" selected="@(hour == "08")">@hour</option>
+                            <option value="@hour">@hour</option>
                         }
                     </select>
                     <span>시</span>
                     <select id="send-minute" class="form-select time-select" aria-label="자동 발송 분">
                         @foreach (string minute in minuteOptions)
                         {
-                            <option value="@minute" selected="@(minute == "00")">@minute</option>
+                            <option value="@minute">@minute</option>
                         }
                     </select>
                     <span>분</span>
@@ -67,3 +66,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/settings.js" asp-append-version="true"></script>
+}
