@@ -23,6 +23,7 @@
 |폴더구조|설명|
 |---|---|
 |프로젝트/docs/|설계·진행 문서 폴더|
+|프로젝트/docs/reference.md|reference 폴더 참고자료 목록 (파일명, 설명, 관련 작업). AI가 폴더를 볼 때 갱신|
 |프로젝트/docs/mockups/|화면 시안 HTML. 서버 없이 바로 열어 보는 파일 (D-066)|
 |프로젝트/docs/mockups/register.html|회원가입 화면 시안|
 |프로젝트/docs/mockups/login.html|로그인 화면 시안|

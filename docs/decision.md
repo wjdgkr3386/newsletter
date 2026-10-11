@@ -694,3 +694,19 @@
 - 이유: 사용자 선택
 - 관련 문서/파일: docs/reference/OpenAPI활용가이드_한국천문연구원_천문우주정보__특일_정보제공_서비스_v1.4.docx, src/Newsletter/Services/HolidayService.cs, src/Newsletter/BackgroundJobs/HolidayRegistrationJob.cs
 - 상태: 유효
+
+### D-083 참고자료 목록 문서 (docs/reference.md)
+- 날짜: 2026-10-12
+- 질문/상황: docs/reference/ 폴더의 파일이 어떤 자료인지 정리할 문서가 필요함
+- 결정: docs/reference.md에 파일마다 파일명·설명·관련 작업을 적는다. AI가 loop.md 1번(계획) 전에 폴더를 볼 때 목록에 없는 파일은 추가하고, 없어진 파일은 목록에서 지운다. 읽는 시점을 정하기 위해 변경 불가 문서인 guide.md 문서 목록에 reference.md를 추가하고 reference/ 행의 읽는 시점에 reference.md를 함께 넣었다(하네스를 만드는 단계라 사용자가 수정을 직접 지시함). structure.md "변경 가능" 목록에도 추가했다. 하네스(C:zzzHarness)에도 같이 반영했다(reference.md는 자료 목록이 빈 템플릿, README.md 파일 목록에도 추가). 진행 중인 작업(뉴스레터 직접 생성/발송)은 그대로 두었다.
+- 이유: 사용자 요구 (기록 항목, 갱신 주체는 사용자 선택)
+- 관련 문서/파일: docs/reference.md, guide.md, structure.md
+- 상태: 유효
+
+### D-084 한국어 대답 규칙
+- 날짜: 2026-10-12
+- 질문/상황: AI가 사용자에게 영어로 대답함
+- 결정: CLAUDE.md 규칙 6번에 "사용자에게 하는 모든 대답과 질문은 한국어로 합니다"를 추가했다. 변경 불가 파일이지만 하네스를 만드는 단계라 사용자가 수정을 직접 지시했다. 하네스(C:zzzHarness)의 CLAUDE.md에도 같이 반영했다.
+- 이유: 사용자 요구
+- 관련 문서/파일: CLAUDE.md
+- 상태: 유효
